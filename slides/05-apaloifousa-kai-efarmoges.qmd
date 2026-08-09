@@ -1,0 +1,200 @@
+---
+title: "Απαλοίφουσα και Εφαρμογές"
+subtitle: "439 Υπολογιστική Άλγεβρα — Κεφάλαιο 5"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Ατζέντα
+
+- Η απαλοίφουσα (πίνακας Sylvester)
+- Γενίκευση Macaulay, θεώρημα Bezout
+- Εφαρμογές: απαλοιφή, implicitization
+- Αραιά συστήματα και το θεώρημα BKK
+
+## Κίνητρο
+
+Το $f=ax^2+bx+c$ έχει διπλή ρίζα $\iff$ τα $f,f'$ έχουν κοινή ρίζα $\iff$ η διακρίνουσα $D=b^2-4ac$ μηδενίζεται.
+
+::: {.fragment}
+Η **απαλοίφουσα** γενικεύει αυτή την ιδέα σε οποιοδήποτε ζεύγος πολυωνύμων.
+:::
+
+# Ο πίνακας Sylvester
+
+## Ορισμός
+
+Για $f=\sum_{i=0}^{d_1}a_ix^i$, $g=\sum_{i=0}^{d_2}b_ix^i$: ο $(d_1{+}d_2)\times(d_1{+}d_2)$ πίνακας **block-Toeplitz**
+
+::: {style="font-size: 0.55em;"}
+$$
+S_{f,g} =
+\begin{pmatrix}
+a_{d_1} & a_{d_1-1} & \cdots & a_1 & a_0 & & & \\
+ & a_{d_1} & a_{d_1-1} & \cdots & a_1 & a_0 & & \\
+ & & \ddots & & & & \ddots & \\
+ & & & a_{d_1} & a_{d_1-1} & \cdots & a_1 & a_0 \\
+b_{d_2} & b_{d_2-1} & \cdots & b_1 & b_0 & & & \\
+ & b_{d_2} & b_{d_2-1} & \cdots & b_1 & b_0 & & \\
+ & & \ddots & & & & \ddots & \\
+ & & & b_{d_2} & b_{d_2-1} & \cdots & b_1 & b_0
+\end{pmatrix}
+$$
+:::
+
+Η **απαλοίφουσα**: $\operatorname{Res}_x(f,g) = \det(S_{f,g})$.
+
+## Θεώρημα
+
+$$ \operatorname{Res}_x(f,g) = 0 \iff f,g \text{ έχουν κοινό παράγοντα} $$
+
+(ισοδύναμα κοινή ρίζα, εκτός αν μηδενίζονται και οι δύο μεγιστοβάθμιοι συντελεστές)
+
+```{julia}
+Rres, xres = polynomial_ring(QQ, :x)
+f = 2xres^2 + 3xres - 1
+g = 2xres - 5
+sylvester_matrix(f, g)
+```
+
+```{julia}
+det(sylvester_matrix(f, g)) == resultant(f, g)
+```
+
+## Τύπος Poisson
+
+$$ \operatorname{Res}_x(f,g) = a_{d_1}^{d_2} \prod_i g(\xi_i) = a_{d_1}^{d_2} b_{d_2}^{d_1} \prod_{i,j} (\xi_i - \eta_j) $$
+
+όπου $\xi_i,\eta_j$ οι ρίζες των $f,g$.
+
+```{julia}
+Rc, xc = polynomial_ring(AcbField(64), :x)
+fc, gc = 2xc^2 + 3xc - 1, 3xc^3 - xc + 4
+ξ, η = roots(fc), roots(gc)
+ac, bc = leading_coefficient(fc), leading_coefficient(gc)
+resultant(fc, gc), ac^degree(gc) * bc^degree(fc) * prod(xi - yj for xi in ξ for yj in η)
+```
+
+## Διακρίνουσα
+
+Για $f=ax^2+bx+c$: $\operatorname{Res}_x(f,f') = -a\cdot\operatorname{disc}(f)$
+
+```{julia}
+Rd, (ad, bd, cd) = polynomial_ring(QQ, [:a, :b, :c])
+Rdx, xd = polynomial_ring(Rd, :x)
+fd = ad*xd^2 + bd*xd + cd
+resultant(fd, derivative(fd)) == -ad * discriminant(fd)
+```
+
+# Γενίκευση: Macaulay
+
+## $n$ μορφές σε $n$ μεταβλητές
+
+Ο Sylvester: δύο πολυώνυμα μιας μεταβλητής. Ο **Macaulay** (1902): $n$ **ομογενείς** μορφές σε $n$ μεταβλητές.
+
+::: {.fragment}
+::: {.callout-important icon=false}
+## Θεώρημα (van der Waerden)
+Ο μοναδικός γεννήτορας $R=\operatorname{Res}(f_1,\dots,f_n)$ ικανοποιεί
+$$ R=0 \iff \text{τα } f_1,\dots,f_n \text{ έχουν κοινή μη τετριμμένη λύση}. $$
+Είναι ομογενές και **πολλαπλασιαστικό**.
+:::
+:::
+
+## Θεώρημα του Bezout
+
+Αν $n{-}1$ ομογενείς εξισώσεις σε $n$ μεταβλητές έχουν πεπερασμένο πλήθος λύσεων, το άθροισμα πολλαπλοτήτων ισούται με το γινόμενο των βαθμών.
+
+::: {.fragment}
+Για $n=3$: δύο καμπύλες βαθμού $d_1,d_2$ τέμνονται σε ακριβώς $d_1d_2$ σημεία (προβολικά, με πολλαπλότητα).
+:::
+
+## Παρατήρηση: ρίζες στο άπειρο
+
+Το φράγμα Bézout $d_1d_2$ μπορεί να **υπερεκτιμά** τις πεπερασμένες κοινές ρίζες.
+
+::: {.fragment}
+Οι "λείπουσες" τομές βρίσκονται **στο άπειρο** — προσμετρώνται στον βαθμό της απαλοίφουσας, αλλά όχι σε κανένα πεπερασμένο σημείο.
+
+(θα το ξαναδούμε στο θεώρημα BKK)
+:::
+
+# Εφαρμογές
+
+## Απαλοιφή μέσω απαλοίφουσας
+
+Για $f,g\in K[x,y]$: το $\operatorname{Res}_x(f,g)\in K[y]$ μηδενίζεται ακριβώς όταν $f,g$ έχουν κοινή ρίζα ως προς $x$.
+
+```{julia}
+Rxy, (xxy, yxy) = polynomial_ring(QQ, [:x, :y])
+resultant(xxy^2 + yxy^2 - 1, xxy - yxy, 1)   # απαλείφει το x
+```
+
+## Implicitization παραμετρικών καμπυλών
+
+Η παραμέτρηση $x(t)=\dfrac{1-t^2}{1+t^2}$, $y(t)=\dfrac{2t}{1+t^2}$ του μοναδιαίου κύκλου:
+
+```{julia}
+Ri, (ti, xi, yi) = polynomial_ring(QQ, [:t, :x, :y])
+fi = xi*(1 + ti^2) - (1 - ti^2)
+gi = yi*(1 + ti^2) - 2ti
+resultant(fi, gi, 1)   # 4(x²+y²-1)
+```
+
+# Αραιά συστήματα και το θεώρημα BKK
+
+## Το πρόβλημα με το φράγμα Bézout
+
+Το $d_1\cdots d_n$ αγνοεί **ποια** μονώνυμα εμφανίζονται — μόνο τους ολικούς βαθμούς.
+
+::: {.fragment}
+Για "αραιά" πολυώνυμα: συχνά πολύ χαλαρό φράγμα.
+:::
+
+## Πολύτοπα Newton
+
+**Στήριγμα:** $\operatorname{Sup}(f)=\{\alpha: c_\alpha\neq 0\}$.  **Πολύτοπο Newton:** $N(f)=\operatorname{CH}(\operatorname{Sup}(f))$.
+
+![](../figures/newton.png){width=90%}
+
+## Θεώρημα BKK
+
+::: {.callout-important icon=false}
+Το πλήθος των **απομονωμένων** κοινών ριζών στο $(K^*)^n$ φράσσεται από
+$$ \operatorname{MV}(N(f_1),\dots,N(f_n)) $$
+— πάντα $\le$ το φράγμα Bézout, συχνά αυστηρά μικρότερο.
+:::
+
+::: {.fragment}
+Η "σωστή" γενίκευση του Bezout για αραιά συστήματα.
+:::
+
+## Σύνοψη
+
+- Η **απαλοίφουσα** μηδενίζεται ακριβώς όταν δύο πολυώνυμα έχουν κοινό παράγοντα.
+- Γενικεύσεις: **Macaulay** για $n$ μορφές, θεώρημα **Bezout**, θεώρημα **BKK** για αραιά συστήματα.
+- Εφαρμογές: απαλοιφή μεταβλητών, implicitization παραμετρικών καμπυλών.

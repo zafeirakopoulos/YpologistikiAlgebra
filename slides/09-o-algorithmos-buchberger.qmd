@@ -1,0 +1,168 @@
+---
+title: "Ο Αλγόριθμος Buchberger"
+subtitle: "439 Υπολογιστική Άλγεβρα — Κεφάλαιο 9"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+o_lex = lex(R)
+```
+
+## Ατζέντα
+
+- S-πολυώνυμο και το κριτήριο Buchberger
+- Ο αλγόριθμος
+- Κριτήρια αποφυγής περιττών ζευγών
+- Ελάχιστη και ανηγμένη βάση Gröbner
+
+# Το S-πολυώνυμο
+
+## Ορισμός
+
+Για $f,g\in K[x_1,\dots,x_n]\setminus\{0\}$, $L=\operatorname{lcm}(\operatorname{lm}(f),\operatorname{lm}(g))$:
+
+$$ \operatorname{spol}(f,g) = \frac{L}{\operatorname{lt}(f)}f - \frac{L}{\operatorname{lt}(g)}g. $$
+
+Ακυρώνει τους μεγιστοβάθμιους όρους.
+
+## Θεώρημα (Κριτήριο Buchberger, 1965)
+
+$G=\{g_1,\dots,g_m\}\subseteq I$ είναι βάση Gröbner **ακριβώς όταν**
+$$ \operatorname{spol}(g_i,g_j) \xrightarrow{G} 0 \quad \text{για κάθε } i\neq j. $$
+
+# Ο αλγόριθμος
+
+## Pseudocode
+
+```
+G = {f_1,...,f_m}
+C = {(f_i,f_j) : i < j}
+while C ≠ ∅:
+    επίλεξε (u,v) ∈ C·  C = C \ {(u,v)}
+    r = reduce(spol(u,v), G)
+    αν r ≠ 0:
+        G = G ∪ {r}
+        C = C ∪ {(g,r) : g ∈ G}
+return G
+```
+
+::: {.fragment}
+Τερματίζει: κάθε νέο στοιχείο αυξάνει το $\langle\operatorname{lt}(G)\rangle$, και ο $K[x_1,\dots,x_n]$ είναι Noetherian.
+:::
+
+# Κριτήρια αποφυγής περιττών ζευγών
+
+## Το πρόβλημα
+
+Η "αφελής" εκδοχή δοκιμάζει **κάθε** ζεύγος — αλλά τα περισσότερα ανάγονται σε $0$.
+
+## Πρώτο κριτήριο
+
+Αν $\operatorname{lt}(g_i),\operatorname{lt}(g_j)$ είναι **πρώτα μεταξύ τους**:
+$$ \operatorname{spol}(g_i,g_j) \xrightarrow{\{g_i,g_j\}} 0 \quad \text{αυτόματα}. $$
+
+::: {.fragment}
+Το ζεύγος παραλείπεται χωρίς έλεγχο.
+:::
+
+## Δεύτερο κριτήριο (αλυσίδας)
+
+Αν $\operatorname{lt}(p) \mid \operatorname{lcm}(\operatorname{lt}(u),\operatorname{lt}(v))$ και τα $(u,p),(p,v)$ έχουν ήδη ελεγχθεί, τότε το $(u,v)$ παραλείπεται κι αυτό.
+
+::: {.fragment}
+Σαν σε γράφημα: αν έχουμε μονοπάτι $u\to p\to v$, δεν χρειαζόμαστε την ακμή $u\to v$.
+
+Καθοριστικό για την πρακτική απόδοση (Singular, OSCAR).
+:::
+
+## Παράδειγμα "με το χέρι"
+
+```{julia}
+function spoly(f, g, o)
+    L = lcm(leading_monomial(f, ordering = o), leading_monomial(g, ordering = o))
+    return divexact(L, leading_term(f, ordering = o)) * f - divexact(L, leading_term(g, ordering = o)) * g
+end
+
+f1, f2 = x^3, x^2*y - y^2
+s12 = spoly(f1, f2, o_lex)
+f3 = reduce(s12, [f1, f2], ordering = o_lex)
+```
+
+```{julia}
+s23 = spoly(f2, f3, o_lex)
+f4 = reduce(s23, [f1, f2, f3], ordering = o_lex)
+```
+
+::: {.fragment}
+$G=\{f_1,f_2,f_3,f_4\}$ είναι βάση Gröbner — ακριβώς ό,τι δίνει το `groebner_basis`.
+:::
+
+## Πλήρης αναγωγή
+
+```{julia}
+Rb, (xb, yb, zb) = polynomial_ring(QQ, [:x, :y, :z])
+ob = lex(Rb)
+Ib = ideal(Rb, [xb^2 - xb*yb, xb*zb - yb^2, yb*zb^2 - zb^4])
+groebner_basis(Ib, ordering = ob, complete_reduction = true)
+```
+
+::: {.fragment}
+Περισσότερα στοιχεία από τους $3$ αρχικούς γεννήτορες — τυπικό φαινόμενο.
+:::
+
+# Ελάχιστη και ανηγμένη βάση Gröbner
+
+## Ορισμοί
+
+**Ελάχιστη**: $\operatorname{lc}(g_i)=1$ και $\operatorname{lt}(g_i)\notin\langle\operatorname{lt}(g_j):j\neq i\rangle$.
+
+**Ανηγμένη**: ελάχιστη + κανένας όρος του $g_i$ δεν διαιρείται από $\operatorname{lt}(g_j)$, $j\neq i$.
+
+::: {.fragment}
+::: {.callout-important icon=false}
+Η ανηγμένη βάση Gröbner είναι **μοναδική** για δοθέν ιδεώδες και διάταξη.
+:::
+:::
+
+## Η διάταξη όρων επηρεάζει το μέγεθος
+
+```{julia}
+Rr, (xr2, yr2, zr2) = polynomial_ring(QQ, [:x, :y, :z])
+Ir = ideal(Rr, [xr2 - zr2^4, yr2 - zr2^5])
+length(groebner_basis(Ir, ordering = lex(Rr), complete_reduction = true)),
+length(groebner_basis(Ir, ordering = deglex(Rr), complete_reduction = true))
+```
+
+::: {.fragment}
+Η lex βάση παραμένει με $2$ στοιχεία· η deglex βάση είναι μεγαλύτερη — ίδιο ιδεώδες, διαφορετικό κόστος.
+:::
+
+## Σύνοψη
+
+- Το **S-πολυώνυμο** ακυρώνει τους μεγιστοβάθμιους όρους· $G$ βάση Gröbner $\iff$ όλα ανάγονται σε $0$.
+- Ο **αλγόριθμος Buchberger** τερματίζει λόγω Noetherianity.
+- Τα δύο **κριτήρια** παραλείπουν πολλά ζεύγη εκ των προτέρων.
+- Η **ανηγμένη** βάση Gröbner είναι μοναδική.

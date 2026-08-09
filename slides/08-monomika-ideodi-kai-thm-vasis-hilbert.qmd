@@ -1,0 +1,132 @@
+---
+title: "Μονωνυμικά Ιδεώδη και το Θεώρημα Βάσης του Hilbert"
+subtitle: "439 Υπολογιστική Άλγεβρα — Κεφάλαιο 8"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+o_lex = lex(R)
+```
+
+## Ατζέντα
+
+- Μονωνυμικά ιδεώδη και το Λήμμα Dickson
+- Μεγιστοβάθμιο ιδεώδες και βάσεις Gröbner
+- Το Θεώρημα Βάσης του Hilbert
+
+# Μονωνυμικά ιδεώδη
+
+## Ορισμός
+
+Ιδεώδες $I$ είναι **μονωνυμικό** αν παράγεται από μονώνυμα: $I=\langle x^a : a\in E\rangle$.
+
+## Θεώρημα (Λήμμα Dickson)
+
+Κάθε μονωνυμικό ιδεώδες του $K[x_1,\dots,x_n]$ παράγεται από **πεπερασμένο** πλήθος μονωνύμων.
+
+::: {.fragment}
+Απόδειξη: επαγωγή στο $n$ — προβολή στις πρώτες $n{-}1$ μεταβλητές, πεπερασμένες "φέτες" ως προς την τελευταία.
+:::
+
+# Μεγιστοβάθμιο ιδεώδες, βάση Gröbner
+
+## Ορισμός
+
+$$ \operatorname{LT}(I) = \langle \operatorname{lt}(f) : f\in I,\ f\neq 0 \rangle. $$
+
+::: {.fragment}
+$G=\{g_1,\dots,g_m\}\subseteq I$ είναι **βάση Gröbner** αν
+$$ \langle \operatorname{lt}(g_1),\dots,\operatorname{lt}(g_m)\rangle = \operatorname{LT}(I). $$
+:::
+
+::: {.fragment}
+Το $\operatorname{LT}(I)$ είναι πάντα μονωνυμικό $\implies$ πεπερασμένα παραγόμενο (Dickson) $\implies$ **κάθε ιδεώδες έχει βάση Gröbner**.
+:::
+
+## Η σκάλα
+
+![](../figures/staircase.png){width=68%}
+
+## Στο OSCAR
+
+```{julia}
+I = ideal(R, [x^3, x^2*y - y^2])
+leading_ideal(I, ordering = o_lex)
+```
+
+```{julia}
+G = groebner_basis(I, ordering = o_lex)
+G
+```
+
+```{julia}
+leading_ideal(I, ordering = o_lex) == ideal(R, [leading_term(g, ordering = o_lex) for g in G])
+```
+
+# Το Θεώρημα Βάσης του Hilbert
+
+## Γιατί δεν είναι αυτονόητο
+
+Το Λήμμα Dickson αφορά μόνο **μονωνυμικά** ιδεώδη. Το γενικό αποτέλεσμα οφείλεται στον Hilbert.
+
+::: {.callout-note icon=false}
+## Ορισμός (ACC)
+Δακτύλιος $R$ ικανοποιεί τη **συνθήκη αύξουσας αλυσίδας** αν κάθε $I_1\subseteq I_2\subseteq\cdots$ σταθεροποιείται.
+:::
+
+## Θεώρημα
+
+$R$ ικανοποιεί την ACC $\iff$ κάθε ιδεώδες είναι πεπερασμένα παραγόμενο ($R$ είναι **Noetherian**).
+
+::: {.fragment}
+**Λήμμα:** αν $R$ είναι Noetherian, τότε και ο $R[t]$ είναι Noetherian.
+:::
+
+## Θεώρημα (Βάση Hilbert)
+
+Αν $K$ σώμα, ο $K[x_1,\dots,x_n]$ είναι Noetherian· κάθε ιδεώδες είναι πεπερασμένα παραγόμενο.
+
+::: {.fragment}
+Απόδειξη: επαγωγή στο $n$, το λήμμα + $K[x_1,\dots,x_n]=K[x_1,\dots,x_{n-1}][x_n]$.
+:::
+
+## Μια "άπειρη" οικογένεια, στην πράξη
+
+```{julia}
+Rh, (xh, yh) = polynomial_ring(QQ, [:x, :y])
+gens20 = [xh^k - xh*yh^(k-1) for k in 1:20]
+length(groebner_basis(ideal(Rh, gens20), ordering = lex(Rh)))   # πολύ μικρότερο από 20!
+```
+
+::: {.fragment}
+Όλοι οι γεννήτορες πέρα από κάποιο $N$ αποδεικνύονται περιττοί.
+:::
+
+## Σύνοψη
+
+- **Λήμμα Dickson**: κάθε μονωνυμικό ιδεώδες παράγεται πεπερασμένα.
+- **Βάση Gröbner**: $\langle \operatorname{lt}(G)\rangle = \operatorname{LT}(I)$.
+- **Θεώρημα Βάσης Hilbert**: κάθε ιδεώδες του $K[x_1,\dots,x_n]$ είναι πεπερασμένα παραγόμενο — εγγυάται ότι μια βάση Gröbner πάντα υπάρχει και είναι πεπερασμένη.
