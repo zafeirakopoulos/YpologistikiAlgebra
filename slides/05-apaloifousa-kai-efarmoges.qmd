@@ -32,6 +32,7 @@ end
 ## Ατζέντα
 
 - Η απαλοίφουσα (πίνακας Sylvester)
+- Αριθμητική αλγεβρικών αριθμών μέσω απαλοίφουσας
 - Γενίκευση Macaulay, θεώρημα Bezout
 - Εφαρμογές: απαλοιφή, implicitization
 - Αραιά συστήματα και το θεώρημα BKK
@@ -109,6 +110,58 @@ Rdx, xd = polynomial_ring(Rd, :x)
 fd = ad*xd^2 + bd*xd + cd
 resultant(fd, derivative(fd)) == -ad * discriminant(fd)
 ```
+
+# Αριθμητική με αλγεβρικούς αριθμούς
+
+## Το ερώτημα
+
+Αν $\alpha$ ρίζα του $f$, $\beta$ ρίζα του $g$: πολυώνυμο με ρίζα το $\alpha+\beta$ (ή $\alpha\beta$);
+
+::: {.callout-note icon=false}
+Κίνητρο/παράδειγμα βάσει [@tsigaridas2006phd, Κεφ. 4] — και πάλι η απαλοίφουσα.
+:::
+
+::: {.fragment}
+::: {.callout-important icon=false}
+## Πρόταση
+
+- $\alpha+\beta$ ρίζα του $\operatorname{Res}_x\bigl(f(x),\,g(z-x)\bigr)$
+- $\alpha\beta$ ρίζα του $\operatorname{Res}_x\bigl(f(x),\,x^{\deg g}g(z/x)\bigr)$
+:::
+:::
+
+::: {.fragment}
+::: {.callout-warning icon=false}
+Δεν είναι πάντα το **ελάχιστο** πολυώνυμο — μπορεί να μηδενίζεται και σε άλλους συνδυασμούς ριζών $\xi_i+\eta_j$.
+:::
+:::
+
+## Παράδειγμα: άθροισμα
+
+$\sqrt2+\sqrt3$ ρίζα του $x^4-10x^2+1$ (ανάγωγο πάνω από $\mathbb{Q}$, από την §[Παραγοντοποίηση πολυωνύμων]).
+
+```{julia}
+Rz, zn = polynomial_ring(QQ, :z)
+Rzx, xn = polynomial_ring(Rz, :x)
+
+fn, gn = xn^2 - 2, xn^2 - 3
+hsum = resultant(fn, gn(zn - xn))   # g(z - x), απαλείφει το x
+factor(hsum)
+```
+
+## Παράδειγμα: γινόμενο
+
+```{julia}
+homog_recip(g, z) = sum(coeff(g, i) * z^i * gen(parent(g))^(degree(g) - i) for i in 0:degree(g))
+
+f2, g2 = xn^2 - 2, xn - 3   # ρίζες √2 και 3
+hprod = resultant(f2, homog_recip(g2, zn))
+factor(hprod)   # (√2)(3) = 3√2, ρίζα του x²-18
+```
+
+::: {.fragment}
+Η ίδια ιδέα γενικεύεται σε διαφορά, πηλίκο· πλήρης θεωρία (αναπαράσταση, σύγκριση, πρόσημο) στο [@tsigaridas2006phd, Κεφ. 4–5].
+:::
 
 # Γενίκευση: Macaulay
 
@@ -196,5 +249,6 @@ $$ \operatorname{MV}(N(f_1),\dots,N(f_n)) $$
 ## Σύνοψη
 
 - Η **απαλοίφουσα** μηδενίζεται ακριβώς όταν δύο πολυώνυμα έχουν κοινό παράγοντα.
+- Αριθμητική αλγεβρικών αριθμών (άθροισμα, γινόμενο) μέσω απαλοίφουσας.
 - Γενικεύσεις: **Macaulay** για $n$ μορφές, θεώρημα **Bezout**, θεώρημα **BKK** για αραιά συστήματα.
 - Εφαρμογές: απαλοιφή μεταβλητών, implicitization παραμετρικών καμπυλών.

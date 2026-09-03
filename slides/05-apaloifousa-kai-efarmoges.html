@@ -444,7 +444,7 @@
   <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="Ζαφειράκης Ζαφειρακόπουλος">
-  <meta name="dcterms.date" content="2026-08-10">
+  <meta name="dcterms.date" content="2026-09-03">
   <title>Απαλοίφουσα και Εφαρμογές</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1014,12 +1014,13 @@ var requirejs,require,define;(function(global,setTimeout){var req,s,head,baseEle
 </div>
 </div>
 
-  <p class="date">2026-08-10</p>
+  <p class="date">2026-09-03</p>
 </section>
 <section id="ατζέντα" class="slide level2">
 <h2>Ατζέντα</h2>
 <ul>
 <li>Η απαλοίφουσα (πίνακας Sylvester)</li>
+<li>Αριθμητική αλγεβρικών αριθμών μέσω απαλοίφουσας</li>
 <li>Γενίκευση Macaulay, θεώρημα Bezout</li>
 <li>Εφαρμογές: απαλοιφή, implicitization</li>
 <li>Αραιά συστήματα και το θεώρημα BKK</li>
@@ -1061,7 +1062,7 @@ b_{d_2} &amp; b_{d_2-1} &amp; \cdots &amp; b_1 &amp; b_0 &amp; &amp; &amp; \\
 <h2>Θεώρημα</h2>
 <p><span class="math display">\[ \operatorname{Res}_x(f,g) = 0 \iff f,g \text{ έχουν κοινό παράγοντα} \]</span></p>
 <p>(ισοδύναμα κοινή ρίζα, εκτός αν μηδενίζονται και οι δύο μεγιστοβάθμιοι συντελεστές)</p>
-<div id="adc91ce1" class="cell" data-execution_count="2">
+<div id="7877aa0c" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="3">
 $\begin{array}{ccc}
 2 &amp; 3 &amp; -1 \\
@@ -1070,7 +1071,7 @@ $\begin{array}{ccc}
 \end{array}$
 </div>
 </div>
-<div id="292ce0df" class="cell" data-execution_count="3">
+<div id="992b0016" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>true</code></pre>
 </div>
@@ -1080,7 +1081,7 @@ $\begin{array}{ccc}
 <h2>Τύπος Poisson</h2>
 <p><span class="math display">\[ \operatorname{Res}_x(f,g) = a_{d_1}^{d_2} \prod_i g(\xi_i) = a_{d_1}^{d_2} b_{d_2}^{d_1} \prod_{i,j} (\xi_i - \eta_j) \]</span></p>
 <p>όπου <span class="math inline">\(\xi_i,\eta_j\)</span> οι ρίζες των <span class="math inline">\(f,g\)</span>.</p>
-<div id="a23817ea" class="cell" data-execution_count="4">
+<div id="41af88ef" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>([-338.000000000000000 +/- 1.04e-16], [-338.00000 +/- 5.95e-6] + [+/- 5.63e-6]*im)</code></pre>
 </div>
@@ -1089,10 +1090,76 @@ $\begin{array}{ccc}
 <section id="διακρίνουσα" class="slide level2">
 <h2>Διακρίνουσα</h2>
 <p>Για <span class="math inline">\(f=ax^2+bx+c\)</span>: <span class="math inline">\(\operatorname{Res}_x(f,f&#39;) = -a\cdot\operatorname{disc}(f)\)</span></p>
-<div id="18fb1cfa" class="cell" data-execution_count="5">
+<div id="a2466a6f" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>true</code></pre>
 </div>
+</div>
+</section></section>
+<section>
+<section id="αριθμητική-με-αλγεβρικούς-αριθμούς" class="title-slide slide level1 center">
+<h1>Αριθμητική με αλγεβρικούς αριθμούς</h1>
+
+</section>
+<section id="το-ερώτημα" class="slide level2">
+<h2>Το ερώτημα</h2>
+<p>Αν <span class="math inline">\(\alpha\)</span> ρίζα του <span class="math inline">\(f\)</span>, <span class="math inline">\(\beta\)</span> ρίζα του <span class="math inline">\(g\)</span>: πολυώνυμο με ρίζα το <span class="math inline">\(\alpha+\beta\)</span> (ή <span class="math inline">\(\alpha\beta\)</span>);</p>
+<div class="callout callout-note no-icon callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<p><strong>Σημείωση</strong></p>
+</div>
+<div class="callout-content">
+<p>Κίνητρο/παράδειγμα βάσει <span class="citation" data-cites="tsigaridas2006phd">[@tsigaridas2006phd, Κεφ. 4]</span> — και πάλι η απαλοίφουσα.</p>
+</div>
+</div>
+</div>
+<div class="fragment">
+<div class="callout callout-important no-icon callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<p><strong>Πρόταση</strong></p>
+</div>
+<div class="callout-content">
+<ul>
+<li><span class="math inline">\(\alpha+\beta\)</span> ρίζα του <span class="math inline">\(\operatorname{Res}_x\bigl(f(x),\,g(z-x)\bigr)\)</span></li>
+<li><span class="math inline">\(\alpha\beta\)</span> ρίζα του <span class="math inline">\(\operatorname{Res}_x\bigl(f(x),\,x^{\deg g}g(z/x)\bigr)\)</span></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="fragment">
+<div class="callout callout-warning no-icon callout-titled callout-style-default">
+<div class="callout-body">
+<div class="callout-title">
+<p><strong>Προειδοποίηση</strong></p>
+</div>
+<div class="callout-content">
+<p>Δεν είναι πάντα το <strong>ελάχιστο</strong> πολυώνυμο — μπορεί να μηδενίζεται και σε άλλους συνδυασμούς ριζών <span class="math inline">\(\xi_i+\eta_j\)</span>.</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="παράδειγμα-άθροισμα" class="slide level2">
+<h2>Παράδειγμα: άθροισμα</h2>
+<p><span class="math inline">\(\sqrt2+\sqrt3\)</span> ρίζα του <span class="math inline">\(x^4-10x^2+1\)</span> (ανάγωγο πάνω από <span class="math inline">\(\mathbb{Q}\)</span>, από την §[Παραγοντοποίηση πολυωνύμων]).</p>
+<div id="97338646" class="cell" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="7">
+$z^{4} - 10 z^{2} + 1$
+</div>
+</div>
+</section>
+<section id="παράδειγμα-γινόμενο" class="slide level2">
+<h2>Παράδειγμα: γινόμενο</h2>
+<div id="23221701" class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="8">
+$z^{2} - 18$
+</div>
+</div>
+<div class="fragment">
+<p>Η ίδια ιδέα γενικεύεται σε διαφορά, πηλίκο· πλήρης θεωρία (αναπαράσταση, σύγκριση, πρόσημο) στο <span class="citation" data-cites="tsigaridas2006phd">[@tsigaridas2006phd, Κεφ. 4–5]</span>.</p>
 </div>
 </section></section>
 <section>
@@ -1139,8 +1206,8 @@ $\begin{array}{ccc}
 <section id="απαλοιφή-μέσω-απαλοίφουσας" class="slide level2">
 <h2>Απαλοιφή μέσω απαλοίφουσας</h2>
 <p>Για <span class="math inline">\(f,g\in K[x,y]\)</span>: το <span class="math inline">\(\operatorname{Res}_x(f,g)\in K[y]\)</span> μηδενίζεται ακριβώς όταν <span class="math inline">\(f,g\)</span> έχουν κοινή ρίζα ως προς <span class="math inline">\(x\)</span>.</p>
-<div id="b2060076" class="cell" data-execution_count="6">
-<div class="cell-output cell-output-display" data-execution_count="7">
+<div id="5c42eae6" class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display" data-execution_count="9">
 $2 y^{2} - 1$
 </div>
 </div>
@@ -1148,8 +1215,8 @@ $2 y^{2} - 1$
 <section id="implicitization-παραμετρικών-καμπυλών" class="slide level2">
 <h2>Implicitization παραμετρικών καμπυλών</h2>
 <p>Η παραμέτρηση <span class="math inline">\(x(t)=\dfrac{1-t^2}{1+t^2}\)</span>, <span class="math inline">\(y(t)=\dfrac{2t}{1+t^2}\)</span> του μοναδιαίου κύκλου:</p>
-<div id="9f3afd34" class="cell" data-execution_count="7">
-<div class="cell-output cell-output-display" data-execution_count="8">
+<div id="4e830f86" class="cell" data-execution_count="9">
+<div class="cell-output cell-output-display" data-execution_count="10">
 $4 x^{2} + 4 y^{2} - 4$
 </div>
 </div>
@@ -1191,6 +1258,7 @@ $4 x^{2} + 4 y^{2} - 4$
 <h2>Σύνοψη</h2>
 <ul>
 <li>Η <strong>απαλοίφουσα</strong> μηδενίζεται ακριβώς όταν δύο πολυώνυμα έχουν κοινό παράγοντα.</li>
+<li>Αριθμητική αλγεβρικών αριθμών (άθροισμα, γινόμενο) μέσω απαλοίφουσας.</li>
 <li>Γενικεύσεις: <strong>Macaulay</strong> για <span class="math inline">\(n\)</span> μορφές, θεώρημα <strong>Bezout</strong>, θεώρημα <strong>BKK</strong> για αραιά συστήματα.</li>
 <li>Εφαρμογές: απαλοιφή μεταβλητών, implicitization παραμετρικών καμπυλών.</li>
 </ul>
