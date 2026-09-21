@@ -1,0 +1,198 @@
+---
+title: "Εργαστήριο 3: Αριθμητική Modulo n — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 3"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Γρήγορη ύψωση σε δύναμη
+
+```{julia}
+function fastpow(a, e, n)
+    r = one(n) % n
+    a = a % n
+    while e > 0
+        if isodd(e)
+            r = (r * a) % n
+        end
+        a = (a * a) % n
+        e >>= 1
+    end
+    return r
+end
+
+fastpow(7, 128, 13), powermod(7, 128, 13)
+```
+
+```{julia}
+function fastpow_count(a, e, n)
+    r = one(n) % n
+    a = a % n
+    cnt = 0
+    while e > 0
+        if isodd(e)
+            r = (r * a) % n
+            cnt += 1
+        end
+        a = (a * a) % n
+        cnt += 1
+        e >>= 1
+    end
+    return r, cnt
+end
+
+r, cnt = fastpow_count(7, 1000, 101)
+cnt, log2(1000)
+```
+
+Το πλήθος πολλαπλασιασμών (`16`) είναι κοντά στο $\log_2(1000)\approx 10$ — ακριβέστερα, $O(\log e)$ (η σταθερά είναι έως 2, ανάλογα με το πλήθος των άσσων στη δυαδική αναπαράσταση του `e`), πολύ μακριά από τα $999$ πολλαπλασιασμούς της αφελούς μεθόδου.
+
+## Άσκηση 2 — Αντίστροφα modulo n
+
+```{julia}
+g, u, v = gcdx(17, 43)
+g, u, mod(17 * u, 43)
+```
+
+```{julia}
+#| error: true
+invmod(6, 9)
+```
+
+Σφάλμα: το `6` **δεν** έχει αντίστροφο modulo `9`, αφού $\gcd(6,9)=3\neq 1$. Αν υπήρχε $u$ με $6u\equiv 1\pmod 9$, τότε το $3=\gcd(6,9)$ θα διαιρούσε το $1$ (αφού διαιρεί το $6u-9v$ για κάθε συνδυασμό) — άτοπο.
+
+## Άσκηση 3 — ΚΘΥ "με το χέρι"
+
+```{julia}
+function crt2(a1, m1, a2, m2)
+    g, u, v = gcdx(m1, m2)
+    @assert g == 1
+    x = a1 * v * m2 + a2 * u * m1
+    return mod(x, m1 * m2)
+end
+
+crt2(2, 3, 3, 5)
+```
+
+```{julia}
+function crt_many(as, ms)
+    x, M = as[1], ms[1]
+    for i in 2:length(as)
+        x = crt2(x, M, as[i], ms[i])
+        M *= ms[i]
+    end
+    return x
+end
+
+crt_many([2, 3, 2], [3, 5, 7])
+```
+
+## Άσκηση 4 — Modular ΜΚΔ πολυωνύμων
+
+```{julia}
+Rmz, xmz = polynomial_ring(ZZ, :x)
+
+function symmetric_rep(a::ZZRingElem, m::ZZRingElem)
+    r = mod(a, m)
+    return r > div(m, 2) ? r - m : r
+end
+
+function modular_gcd(f, g; primes = ZZ.([11, 13, 17, 19, 23, 29, 31]))
+    gamma = gcd(leading_coefficient(f), leading_coefficient(g))
+    best_deg = typemax(Int)
+    M, acc = ZZ(1), zero(Rmz)
+    for p in primes
+        mod(gamma, p) == 0 && continue
+        Fp = GF(p)
+        Rp, xp = polynomial_ring(Fp, :xp)
+        fp = map_coefficients(c -> Fp(c), f, parent = Rp)
+        gp = map_coefficients(c -> Fp(c), g, parent = Rp)
+        dp = divexact(gcd(fp, gp), leading_coefficient(gcd(fp, gp)))
+        scaled = Fp(gamma) * dp
+        d = degree(scaled)
+        if d < best_deg
+            best_deg, M = d, ZZ(p)
+            acc = map_coefficients(c -> lift(ZZ, c), scaled, parent = Rmz)
+            continue
+        end
+        d > best_deg && continue
+        newM = M * p
+        acc = Rmz([symmetric_rep(crt(coeff(acc, i), M, lift(ZZ, coeff(scaled, i)), ZZ(p)), newM) for i in 0:d])
+        M = newM
+    end
+    return divexact(acc, content(acc))
+end
+
+d0 = xmz^2 + xmz + 1
+fex, gex = d0 * (xmz - 4), d0 * (xmz^2 + 5)
+modular_gcd(fex, gex), gcd(fex, gex)
+```
+
+## Άσκηση 5 — Άτυχοι πρώτοι, στην πράξη
+
+```{julia}
+f = xmz - 2
+g = xmz - 9
+gcd(f, g), resultant(f, g)
+```
+
+Το $\gcd(f,g)=1$ πάνω από το $\mathbb{Z}$ (διαφορετικές ρίζες, $2\neq 9$), αλλά η απαλοίφουσα $\operatorname{Res}(f,g)=2-9=-7$ — άρα ο $p=7$ είναι ύποπτος **χωρίς** καν να διαιρεί κάποιον μεγιστοβάθμιο συντελεστή (εδώ και οι δύο είναι μονικά!):
+
+```{julia}
+F7 = GF(7)
+R7, x7 = polynomial_ring(F7, :x)
+f7 = map_coefficients(c -> F7(c), f, parent = R7)
+g7 = map_coefficients(c -> F7(c), g, parent = R7)
+f7, g7, gcd(f7, g7)
+```
+
+Πράγματι, $9 \equiv 2 \pmod 7$, άρα `f` και `g` γίνονται **το ίδιο** πολυώνυμο modulo 7 — ο βαθμός του gcd εκτοξεύεται από 0 σε 1. Η `modular_gcd` μας δεν παραπλανάται: αφού δοκιμάσει και άλλους πρώτους (`11, 13, ...`, όπου ο βαθμός θα είναι σωστά 0), θα κρατήσει τον **ελάχιστο** παρατηρούμενο βαθμό και θα αγνοήσει το αποτέλεσμα mod 7.
+
+## Άσκηση 6 — Toy RSA
+
+```{julia}
+p, q = 61, 53
+n = p * q
+phi = (p - 1) * (q - 1)
+e = 17
+gcd(e, phi)
+```
+
+```{julia}
+d = invmod(e, phi)
+d
+```
+
+```{julia}
+m = 65
+c = fastpow(m, e, n)
+```
+
+```{julia}
+m2 = fastpow(c, d, n)
+m2 == m
+```
+
+Χρειαζόμαστε γρήγορη ύψωση σε δύναμη γιατί σε πραγματικό RSA οι εκθέτες (και το $n$) έχουν εκατοντάδες ή χιλιάδες bits — η αφελής μέθοδος ($O(e)$ πολλαπλασιασμοί τεράστιων αριθμών) θα ήταν αδύνατο να τερματίσει σε λογικό χρόνο, ενώ η `fastpow` χρειάζεται μόλις $O(\log e)$, δηλαδή μερικές εκατοντάδες πολλαπλασιασμούς το πολύ.

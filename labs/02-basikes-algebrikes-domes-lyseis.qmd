@@ -1,0 +1,142 @@
+---
+title: "Εργαστήριο 2: Βασικές Αλγεβρικές Δομές — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 2"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Δακτύλιοι, σώματα, ακέραιες περιοχές
+
+```{julia}
+R10, _ = residue_ring(ZZ, 10)
+a, b, c = R10(3), R10(7), R10(4)
+a * (b + c) == a * b + a * c
+```
+
+```{julia}
+R10(2) * R10(5)   # 2·5 = 10 ≡ 0, ενώ 2,5 ≠ 0
+```
+
+Το $\mathbb{Z}/10\mathbb{Z}$ **δεν** είναι ακέραια περιοχή (έχει διαιρέτες του μηδενός, π.χ. `2·5=0`), άρα δεν είναι ούτε σώμα (κάθε σώμα είναι ακέραια περιοχή).
+
+## Άσκηση 2 — Ο δακτύλιος $\mathbb{Z}/n\mathbb{Z}$
+
+```{julia}
+function units_and_zerodivisors(n)
+    R, _ = residue_ring(ZZ, n)
+    units = [a for a in 1:n-1 if is_unit(R(a))]
+    zerodiv = [a for a in 1:n-1 if !is_unit(R(a))]
+    return units, zerodiv
+end
+
+units_and_zerodivisors(12), units_and_zerodivisors(13)
+```
+
+Η λίστα διαιρετών του μηδενός είναι κενή ακριβώς όταν το `n` είναι πρώτος — τότε όλα τα μη μηδενικά στοιχεία είναι αντιστρέψιμα, δηλαδή το $\mathbb{Z}/n\mathbb{Z}$ είναι σώμα.
+
+## Άσκηση 3 — Το γινόμενο Cauchy
+
+```{julia}
+R, x = polynomial_ring(QQ, :x)
+
+function my_mul(f, g)
+    df, dg = degree(f), degree(g)
+    result = zero(R)
+    for i in 0:df, j in 0:dg
+        result += coeff(f, i) * coeff(g, j) * x^(i + j)
+    end
+    return result
+end
+
+f = 3x^2 - x + 1
+g = x - 2
+my_mul(f, g) == f * g
+```
+
+## Άσκηση 4 — Ευκλείδεια διαίρεση
+
+```{julia}
+function my_divrem(f, g)
+    q = zero(R)
+    r = f
+    while !iszero(r) && degree(r) >= degree(g)
+        c = leading_coefficient(r) // leading_coefficient(g)
+        d = degree(r) - degree(g)
+        term = c * x^d
+        q += term
+        r -= term * g
+    end
+    return q, r
+end
+
+f = 3x^4 - 2x^2 + x - 5
+g = x^2 + 1
+my_divrem(f, g) == divrem(f, g)
+```
+
+## Άσκηση 5 — Ο αλγόριθμος του Ευκλείδη
+
+```{julia}
+function my_gcd(f, g)
+    while !iszero(g)
+        _, r = divrem(f, g)
+        f, g = g, r
+    end
+    return iszero(f) ? f : divexact(f, leading_coefficient(f))
+end
+
+f1 = (x - 1)^2 * (x + 3)
+f2 = (x - 1) * (x - 5)
+my_gcd(f1, f2), gcd(f1, f2)
+```
+
+## Άσκηση 6 — ΜΚΔ πολλών πολυωνύμων
+
+```{julia}
+my_gcd_many(polys) = reduce(my_gcd, polys)
+
+my_gcd_many([x^4 + x^2 + 1, x^4 - x^2 - 2x - 1, x^3 - 1])
+```
+
+## Άσκηση 7 — Περιοχή Κυρίων Ιδεωδών
+
+```{julia}
+g = gcd(gcd(12, 18), 30)
+I = ideal(ZZ, [12, 18, 30])
+J = ideal(ZZ, [g])
+g, I == J
+```
+
+## Άσκηση 8 — Μικρό πρόβλημα σύνθεσης
+
+```{julia}
+function classify(n)
+    n > 1 && is_prime(ZZ(n)) ? "σώμα" : "ούτε ακέραια περιοχή ούτε σώμα"
+end
+
+classify(7), classify(1), classify(15)
+```
+
+Δεν υπάρχει "ακέραια περιοχή αλλά όχι σώμα" ανάμεσα στα $\mathbb{Z}/n\mathbb{Z}$: αν το $n$ δεν είναι πρώτος, το $\mathbb{Z}/n\mathbb{Z}$ έχει διαιρέτες του μηδενός (δεν είναι καν ακέραια περιοχή). Και αν *ήταν* ακέραια περιοχή για κάποιο σύνθετο $n$, θα ήταν αναγκαστικά σώμα ούτως ή άλλως — αφού είναι **πεπερασμένη** (θεώρημα της Άσκησης 1 στη διάλεξη: κάθε πεπερασμένη ακέραια περιοχή είναι σώμα). Η μεσαία κατηγορία υπάρχει μόνο σε **άπειρους** δακτυλίους (π.χ. $\mathbb{Z}$ ο ίδιος: ακέραια περιοχή, όχι σώμα).

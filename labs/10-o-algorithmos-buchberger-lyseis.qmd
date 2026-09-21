@@ -1,0 +1,162 @@
+---
+title: "Εργαστήριο 10: Ο Αλγόριθμος Buchberger — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 10"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+R, (x, y) = polynomial_ring(QQ, [:x, :y])
+o = lex(R)
+```
+
+## Άσκηση 1 — S-πολυώνυμα
+
+```{julia}
+function spoly(f, g, o)
+    L = lcm(leading_monomial(f, ordering = o), leading_monomial(g, ordering = o))
+    return divexact(L, leading_term(f, ordering = o)) * f - divexact(L, leading_term(g, ordering = o)) * g
+end
+
+f1, f2 = x^3, x^2*y - y^2
+spoly(f1, f2, o)
+```
+
+Οι μεγιστοβάθμιοι όροι ($x^3$ και $x^2y$) ακυρώνονται κατασκευαστικά: πολλαπλασιάζουμε το καθένα με ό,τι χρειάζεται για να φτάσουν στο κοινό $\operatorname{lcm}=x^3y$, και αφαιρούμε.
+
+## Άσκηση 2 — Ο αλγόριθμος Buchberger από το μηδέν
+
+```{julia}
+function my_buchberger(F, o)
+    G = copy(F)
+    pairs = [(i, j) for i in 1:length(G) for j in i+1:length(G)]
+    while !isempty(pairs)
+        (i, j) = pop!(pairs)
+        r = reduce(spoly(G[i], G[j], o), G, ordering = o)
+        if !iszero(r)
+            push!(G, r)
+            n = length(G)
+            for k in 1:n-1
+                push!(pairs, (k, n))
+            end
+        end
+    end
+    return G
+end
+
+Gmine = my_buchberger([f1, f2], o)
+length(Gmine), length(groebner_basis(ideal(R, [f1, f2]), ordering = o))
+```
+
+```{julia}
+leading_ideal(ideal(R, Gmine), ordering = o) == leading_ideal(ideal(R, [f1, f2]), ordering = o)
+```
+
+Ίδιο μεγιστοβάθμιο ιδεώδες — άρα το `Gmine` είναι πράγματι βάση Gröbner του ίδιου ιδεώδους.
+
+## Άσκηση 3 — Σε μεγαλύτερο παράδειγμα
+
+```{julia}
+Rb, (xb, yb, zb) = polynomial_ring(QQ, [:x, :y, :z])
+ob = lex(Rb)
+Ib_gens = [xb^2 - xb*yb, xb*zb - yb^2, yb*zb^2 - zb^4]
+
+length(my_buchberger(Ib_gens, ob)), length(groebner_basis(ideal(Rb, Ib_gens), ordering = ob, complete_reduction = true))
+```
+
+Ο αφελής αλγόριθμος δίνει **11** στοιχεία, ενώ η ανηγμένη βάση έχει μόλις **7**: ο Buchberger παράγει μια *έγκυρη* βάση Gröbner, αλλά όχι ελάχιστη — πολλά από τα στοιχεία που προστίθενται έχουν μεγιστοβάθμιο όρο που διαιρείται από άλλον, άρα είναι περιττά και αφαιρούνται στο βήμα της πλήρους αναγωγής.
+
+## Άσκηση 4 — Πρώτο κριτήριο του Buchberger
+
+```{julia}
+fa, ga = xb^2, yb^3
+lt1, lt2 = leading_term(fa, ordering = ob), leading_term(ga, ordering = ob)
+lcm(lt1, lt2) == lt1 * lt2
+```
+
+```{julia}
+reduce(spoly(fa, ga, ob), [fa, ga], ordering = ob)
+```
+
+Μηδέν, όπως προβλέπει το κριτήριο — χωρίς να χρειαστεί κανένας έλεγχος.
+
+```{julia}
+function my_buchberger_crit(F, o; use_criterion = true)
+    G = copy(F)
+    pairs = [(i, j) for i in 1:length(G) for j in i+1:length(G)]
+    considered, skipped = 0, 0
+    while !isempty(pairs)
+        (i, j) = pop!(pairs)
+        considered += 1
+        if use_criterion
+            lt1 = leading_term(G[i], ordering = o)
+            lt2 = leading_term(G[j], ordering = o)
+            if lcm(lt1, lt2) == lt1 * lt2
+                skipped += 1
+                continue
+            end
+        end
+        r = reduce(spoly(G[i], G[j], o), G, ordering = o)
+        if !iszero(r)
+            push!(G, r)
+            n = length(G)
+            for k in 1:n-1
+                push!(pairs, (k, n))
+            end
+        end
+    end
+    return G, considered, skipped
+end
+
+G1, c1, _ = my_buchberger_crit(Ib_gens, ob, use_criterion = false)
+G2, c2, s2 = my_buchberger_crit(Ib_gens, ob, use_criterion = true)
+(length(G1), c1), (length(G2), c2, s2)
+```
+
+Με το κριτήριο: **18** ζεύγη παραλείπονται χωρίς καν να υπολογιστεί το S-πολυώνυμό τους, και συνολικά επεξεργαζόμαστε 45 αντί για 55 ζεύγη — ενώ η βάση βγαίνει και ελαφρώς μικρότερη (10 αντί 11), αφού αποφεύγουμε να προσθέσουμε κάποια περιττά στοιχεία.
+
+## Άσκηση 5 — Ελάχιστη και ανηγμένη βάση
+
+```{julia}
+Gplain = groebner_basis(ideal(Rb, Ib_gens), ordering = ob)
+Gred = groebner_basis(ideal(Rb, Ib_gens), ordering = ob, complete_reduction = true)
+length(Gplain), length(Gred)
+```
+
+```{julia}
+lts = [leading_term(g, ordering = ob) for g in Gred]
+all(!divides(lts[i], lts[j])[1] for i in 1:length(lts) for j in 1:length(lts) if i != j)
+```
+
+Κανένας μεγιστοβάθμιος όρος της ανηγμένης βάσης δεν διαιρεί κανέναν άλλο — ακριβώς η συνθήκη "ελάχιστη" του ορισμού.
+
+## Άσκηση 6 — Η επίδραση της διάταξης
+
+```{julia}
+Rr, (xr, yr, zr) = polynomial_ring(QQ, [:x, :y, :z])
+Ir = ideal(Rr, [xr - zr^3, yr - zr^2])
+length(groebner_basis(Ir, ordering = lex(Rr), complete_reduction = true)),
+length(groebner_basis(Ir, ordering = deglex(Rr), complete_reduction = true)),
+length(groebner_basis(Ir, ordering = degrevlex(Rr), complete_reduction = true))
+```
+
+Εδώ η **lex** δίνει τη μικρότερη βάση (2 στοιχεία — οι αρχικοί γεννήτορες είναι ήδη βάση Gröbner), ενώ deglex και degrevlex δίνουν 4 και 3 αντίστοιχα. Προσοχή: αυτό **δεν** είναι γενικός κανόνας — στα περισσότερα "πραγματικά" προβλήματα η lex είναι η *ακριβότερη* διάταξη και η degrevlex η φθηνότερη· εδώ το ιδεώδες έχει ήδη τριγωνική μορφή που ευνοεί τη lex.

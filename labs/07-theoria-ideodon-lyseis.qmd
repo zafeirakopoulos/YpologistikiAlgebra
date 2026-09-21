@@ -1,0 +1,112 @@
+---
+title: "Εργαστήριο 7: Θεωρία Ιδεωδών — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 7"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Ιδεώδη στο $\mathbb{Z}$ και ταυτότητα Bézout
+
+```{julia}
+g, x0, y0 = gcdx(6, 15)
+g, x0, y0
+```
+
+```{julia}
+I = ideal(ZZ, [6, 15])
+isone(I)
+```
+
+```{julia}
+J = ideal(ZZ, [6, 35])
+isone(J)
+```
+
+Το `isone(J)` είναι `true` γιατί $\gcd(6,35)=1$ (σχετικά πρώτοι), ενώ $\gcd(6,15)=3\neq1$.
+
+## Άσκηση 2 — PID στο $K[x]$
+
+```{julia}
+R, x = polynomial_ring(QQ, :x)
+I1 = ideal(R, [x^2 - 9, x - 3])
+I2 = ideal(R, [x - 3])
+I1 == I2
+```
+
+```{julia}
+f, g = x - 3, x - 4   # σχετικά πρώτα, διαφορετικές ρίζες
+isone(ideal(R, [f, g]))
+```
+
+## Άσκηση 3 — Πράξεις σε ιδεώδη του $\mathbb{Z}$
+
+```{julia}
+m, n = 15, 20
+Im, Jn = ideal(ZZ, [m]), ideal(ZZ, [n])
+Im + Jn == ideal(ZZ, [gcd(m, n)]), intersect(Im, Jn) == ideal(ZZ, [lcm(m, n)]), Im * Jn == ideal(ZZ, [m * n])
+```
+
+## Άσκηση 4 — Μεγιστικά, ριζικά, πρωτεύοντα ιδεώδη
+
+```{julia}
+Rp, (xp, yp) = polynomial_ring(QQ, [:x, :y])
+examples = [
+    "<y>"     => ideal(Rp, [yp]),
+    "<x,y>"   => ideal(Rp, [xp, yp]),
+    "<y^3>"   => ideal(Rp, [yp^3]),
+    "<x^2,y>" => ideal(Rp, [xp^2, yp]),
+]
+[(name, is_prime(I), is_primary(I), radical(I)) for (name, I) in examples]
+```
+
+Τα `<y>` και `<x,y>` είναι πρώτα (άρα και πρωτεύοντα)· το `<y^3>` είναι πρωτεύον αλλά **όχι** πρώτο ($y\cdot y^2\in\langle y^3\rangle$ αλλά $y\notin\langle y^3\rangle$, ενώ $y^2\in\sqrt{\langle y^3\rangle}=\langle y\rangle$ — ικανοποιείται η ασθενέστερη συνθήκη του πρωτεύοντος)· ομοίως το `<x²,y>`.
+
+```{julia}
+Ixy = ideal(Rp, [xp * yp])
+is_prime(Ixy), is_primary(Ixy)
+```
+
+Το `<xy>` δεν είναι ούτε πρώτο ούτε πρωτεύον: $xy\in\langle xy\rangle$, αλλά ούτε $x$ ούτε $y$ ανήκουν στο ιδεώδες, και το $\langle xy\rangle$ είναι ήδη ριζικό ($\sqrt{\langle xy\rangle}=\langle xy\rangle$, αφού το $xy$ είναι χωρίς τετράγωνα) — άρα ούτε $y\in\sqrt{\langle xy\rangle}$.
+
+## Άσκηση 5 — Χαρακτηρισμός μέσω δακτυλίου πηλίκου
+
+```{julia}
+dim(ideal(Rp, [xp, yp])), dim(ideal(Rp, [xp]))
+```
+
+```{julia}
+dim(ideal(Rp, [xp - 1, yp - 2]))
+```
+
+Το `<x,y>` αντιστοιχεί στο σημείο $(0,0)$ (διάσταση 0, μεγιστικό)· το `<x-1,y-2>` αντιστοιχεί στο σημείο $(1,2)$ — γενικά, το μεγιστικό ιδεώδες ενός σημείου $(a,b)$ στο $K[x,y]$ είναι $\langle x-a,\,y-b\rangle$.
+
+## Άσκηση 6 — Σύνθεση
+
+```{julia}
+I6 = ideal(Rp, [xp^2, xp * yp])
+is_prime(I6), is_primary(I6), radical(I6), dim(I6)
+```
+
+Το $I=\langle x^2,xy\rangle = x\cdot\langle x,y\rangle$ **δεν** είναι ούτε πρώτο ούτε πρωτεύον: $xy\in I$, αλλά $x\notin I$ (κάθε γεννήτορας έχει βαθμό $\ge2$) και $y\notin\sqrt I=\langle x\rangle$. Το $\sqrt I=\langle x\rangle$ έχει διάσταση 1 (ολόκληρος ο άξονας $y$, δηλαδή η ευθεία $x=0$) — γεωμετρικά, το $I$ "ζει" πάνω σε αυτή την ευθεία αλλά με πρόσθετη πολλαπλότητα στην αρχή των αξόνων.

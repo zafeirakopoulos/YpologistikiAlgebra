@@ -1,0 +1,212 @@
+---
+title: "Εφαρμογές Βάσεων Gröbner και Αλγεβρικά Σύνολα"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 11"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Ατζέντα
+
+- Ideal membership, ισότητα ιδεωδών, δακτύλιος πηλίκο
+- Ιδεώδη απαλοιφής και το Θεώρημα Απαλοιφής
+- Αφινικές αλγεβρικά σύνολα· Θεωρήματα Επέκτασης και Κλειστότητας
+- Επίλυση συστημάτων, προβολές, αυτόματη απόδειξη
+
+# Εφαρμογές βάσεων Gröbner
+
+## Το πρόβλημα του Membership, ξανά
+
+$$ f\in I \iff \operatorname{red}(f,G) = 0 \quad (G \text{ βάση Gröbner του } I). $$
+
+```{julia}
+Ra, (xa, ya, za) = polynomial_ring(QQ, [:x, :y, :z])
+Ia = ideal(Ra, [xa*ya - za^2, xa^2 - ya])
+xa^3 - za^2 in Ia
+```
+
+## Ισότητα ιδεωδών
+
+Δύο ιδεώδη είναι ίσα $\iff$ έχουν την ίδια ανηγμένη βάση Gröbner.
+
+```{julia}
+J1 = ideal(Ra, [xa + ya, ya + za])
+J2 = ideal(Ra, [xa - za, ya + za])
+J1 == J2
+```
+
+## Ο δακτύλιος πηλίκο $A/I$
+
+Μια βάση Gröbner $G$ δίνει σε κάθε $f+I$ **μοναδικό** αντιπρόσωπο $\operatorname{red}(f,G)$.
+
+::: {.callout-important icon=false}
+## Θεώρημα ($K$-βάση του $A/I$)
+Τα **standard μονώνυμα** $B=\{x^a : x^a\notin\operatorname{LT}(I)\}$ απεικονίζονται σε $K$-βάση του $A/I$.
+:::
+
+::: {.fragment}
+$\dim_K(A/I)$ = πλήθος μονωνύμων **κάτω από τη σκάλα**.
+:::
+
+## Πεπερασμένη διάσταση $\iff$ πεπερασμένο αλγεβρικό σύνολο
+
+Για $K=\overline{K}$ και $G$ βάση Gröbner:
+
+1. το $V(I)$ είναι πεπερασμένο
+2. $\forall i,\ \exists g\in G$ με $\operatorname{lm}(g)=x_i^{c_i}$ (η σκάλα φραγμένη σε κάθε κατεύθυνση)
+3. $\dim_K(A/I) < \infty$
+
+## Παράδειγμα
+
+```{julia}
+Rq, (xq, yq) = polynomial_ring(QQ, [:x, :y])
+Iq = ideal(Rq, [xq^3, xq^2*yq - yq^2])
+Qq, _ = quo(Rq, Iq)
+monomial_basis(Qq), vector_space_dimension(Qq)
+```
+
+## Ιδεώδη Απαλοιφής
+
+$$ I_l = I \cap K[x_{l+1},\dots,x_n]. $$
+
+::: {.callout-important icon=false}
+## Θεώρημα (Απαλοιφής)
+Αν $G$ βάση Gröbner ως προς lex $x_1>\cdots>x_n$: $G_l=G\cap K[x_{l+1},\dots,x_n]$ είναι βάση Gröbner του $I_l$.
+:::
+
+```{julia}
+Ie = ideal(Ra, [xa^2 + ya^2 + za^2 - 1, xa^2 + 2ya^2 - 2, xa*za - 1])
+eliminate(Ie, [xa])   # I_1 = I ∩ K[y,z]
+```
+
+## Τομή ιδεωδών
+
+Νέα μεταβλητή $t$: $I\cap J = \langle t\cdot I,\, (1{-}t)\cdot J\rangle \cap K[x_1,\dots,x_n]$.
+
+```{julia}
+R3, (x3, y3) = polynomial_ring(QQ, [:x, :y])
+intersect(ideal(R3, [x3^2 + y3]), ideal(R3, [x3 - y3]))
+```
+
+# Αφινικές αλγεβρικά σύνολα
+
+## Ορισμός
+
+$$ V(f_1,\dots,f_k) = \{a\in K^n : f_i(a)=0\ \forall i\}. $$
+
+::: {.fragment}
+$V(x^2+y^2-1)\subset\mathbb{R}^2$: ο μοναδιαίος κύκλος.
+
+$V(x^2+y^2+1)$: κενό πάνω από $\mathbb{R}$, **μη κενό** πάνω από $\mathbb{C}$.
+:::
+
+::: {.fragment}
+$V\cup W = V(f_ig_j)$, $V\cap W = V(f_1,\dots,f_s,g_1,\dots,g_t)$.
+:::
+
+## Θεώρημα Επέκτασης
+
+Έστω $I_1=I\cap\mathbb{C}[x_2,\dots,x_n]$, $f_i=c_i(x_2,\dots,x_n)x_1^{N_i}+\cdots$.
+
+::: {.fragment}
+Αν $(a_2,\dots,a_n)\in V(I_1)$ **δεν** μηδενίζει όλα τα $c_i$: επεκτείνεται σε λύση στο $V(I)$.
+:::
+
+## Θεώρημα Κλειστότητας
+
+$V(I_1)$ είναι το **μικρότερο** αλγεβρικό σύνολο που περιέχει $\Pi_1(V)$.
+
+::: {.fragment}
+$\Pi_1(V)$ "γεμίζει" το $V(I_1)$ εκτός από ένα "μικρό" κομμάτι.
+:::
+
+## Προσοχή: η προβολή δεν είναι πάντα αλγεβρική
+
+Για $V=V(xy-1)\subset\mathbb{C}^2$: $\Pi_1(V)=\mathbb{C}^*$ **δεν** είναι αλγεβρικό σύνολο.
+
+```{julia}
+Rw, (xw, yw) = polynomial_ring(QQ, [:x, :y])
+Iw = ideal(Rw, [xw*yw - 1])
+eliminate(Iw, [xw])   # μηδενικό ιδεώδες: γεμίζει όλο το y, εκτός του y=0
+```
+
+# Περισσότερες εφαρμογές
+
+## Επίλυση αλγεβρικών συστημάτων
+
+Μηδενοδιάστατο σύστημα → βάση Gröbner ως προς lex → "τριγωνικό" σύστημα:
+
+```{julia}
+Rs, (xs, ys) = polynomial_ring(QQ, [:x, :y])
+Is = ideal(Rs, [xs + ys - 3, xs^2 + ys^2 - 5])
+groebner_basis(Is, ordering = lex(Rs))
+```
+
+```{julia}
+real_solutions(Is)[1]
+```
+
+## Προβολές αλγεβρικών συνόλων
+
+$\Pi_l(V(I))$ **περιέχεται** πάντα στο $V(I_l)$, με ισότητα (έως "μικρό" υποσύνολο) πάνω από αλγεβρικά κλειστό σώμα.
+
+::: {.fragment}
+Γεωμετρικό ερώτημα $\to$ υπολογισμός ιδεώδους απαλοιφής.
+:::
+
+## Αυτόματη απόδειξη γεωμετρικών θεωρημάτων
+
+**Θεώρημα.** Οι διαγώνιοι ενός παραλληλογράμμου διχοτομούνται.
+
+$A{=}(0,0)$, $B{=}(b,0)$, $C{=}(c_1,c_2)$, $D{=}(d_1,d_2)$:
+
+```{julia}
+Rp, (b, c1, c2, d1, d2) = polynomial_ring(QQ, [:b, :c1, :c2, :d1, :d2])
+h1 = c2 - d2
+h2 = d1*c2 - d2*(c1 - b)
+g = c1 - d1 - b
+Ip = ideal(Rp, [h1, h2])
+g in Ip
+```
+
+## `false`! Χρειάζεται μη-εκφυλισμός
+
+```{julia}
+c2 * g in Ip   # αλλά c2·g ανήκει στο ιδεώδες
+```
+
+::: {.fragment}
+Το συμπέρασμα ισχύει **εκτός αν** $c_2=0$ (τα $A,B,C$ συνευθειακά).
+
+Τυπικό: οι μέθοδοι αυτόματης απόδειξης συχνά χρειάζονται **συνθήκες μη-εκφυλισμού**.
+:::
+
+## Σύνοψη
+
+- Οι βάσεις Gröbner λύνουν: ideal membership, ισότητα ιδεωδών, διάσταση του $A/I$.
+- **Ιδεώδη απαλοιφής**: βάση Gröbner ως προς lex δίνει απευθείας γεννήτορες.
+- Θεωρήματα **Επέκτασης** και **Κλειστότητας** συνδέουν απαλοιφή με προβολή — με τις αναγκαίες προειδοποιήσεις.
+- Εφαρμογές: επίλυση συστημάτων, προβολές, αυτόματη απόδειξη θεωρημάτων.

@@ -1,0 +1,189 @@
+---
+title: "Αριθμητική Modulo n"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 3"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Ατζέντα
+
+- Γρήγορη ύψωση σε δύναμη
+- Αντίστροφα modulo n (επεκτεταμένος Ευκλείδης)
+- Το Κινέζικο Θεώρημα Υπολοίπων
+- Εφαρμογή: modular ΜΚΔ πολυωνύμων
+
+## Το ερώτημα
+
+Ξέρουμε ήδη τη **δομή** του $\mathbb{Z}/n\mathbb{Z}$ (σώμα αν $n$ πρώτος, διαιρέτες μηδενός αλλιώς). Τώρα: πώς υπολογίζουμε **γρήγορα** δυνάμεις και αντίστροφα, και πώς συνδυάζουμε πληροφορία από πολλά moduli;
+
+::: {.fragment}
+Υποδομή για ό,τι ακολουθεί: Frobenius στην παραγοντοποίηση, ανύψωση Hensel, modular ΜΚΔ/απαλοίφουσα/γραμμική άλγεβρα.
+:::
+
+# Γρήγορη ύψωση σε δύναμη
+
+## Square-and-multiply
+
+::: {.callout-important icon=false}
+## Πρόταση
+$$
+a^e \bmod n =
+\begin{cases}
+1 & e = 0 \\
+\left( a^{e/2} \bmod n \right)^2 \bmod n & e > 0 \text{ άρτιος} \\
+a \cdot \left( a^{(e-1)/2} \bmod n \right)^2 \bmod n & e \text{ περιττός}
+\end{cases}
+$$
+$O(\log e)$ πολλαπλασιασμοί, αντί για $O(e)$.
+:::
+
+```{julia}
+function fastpow(a, e, n)
+    r = one(n) % n
+    a = a % n
+    while e > 0
+        if isodd(e)
+            r = (r * a) % n
+        end
+        a = (a * a) % n
+        e >>= 1
+    end
+    return r
+end
+
+fastpow(7, 128, 13), powermod(7, 128, 13)
+```
+
+::: {.fragment}
+Ίδια ιδέα, διαφορετικός δακτύλιος: ο Frobenius $h \mapsto h^q$ (Berlekamp) είναι ακριβώς αυτό μέσα στο $\mathbb{F}_q[x]/\langle f \rangle$.
+:::
+
+# Αντίστροφα modulo n
+
+## Επεκτεταμένος αλγόριθμος Ευκλείδη
+
+Ταυτότητα **Bézout**: $au + nv = \gcd(a,n)$. Αν $\gcd(a,n)=1$, τότε $u \bmod n$ είναι το αντίστροφο του $a$.
+
+```{julia}
+g, u, v = gcdx(7, 24)
+g, u, v, mod(7 * u, 24)
+```
+
+```{julia}
+invmod(7, 24)
+```
+
+::: {.fragment}
+```{julia}
+[a for a in 1:23 if gcd(a, 24) == 1] == [a for a in 1:23 if is_unit(residue_ring(ZZ, 24)[1](a))]
+```
+:::
+
+# Το Κινέζικο Θεώρημα Υπολοίπων
+
+## Θεώρημα (ΚΘΥ)
+
+Για $m_1,\dots,m_k$ ανά δύο πρώτους μεταξύ τους, $M=m_1\cdots m_k$:
+$$ \mathbb{Z}/M\mathbb{Z} \;\xrightarrow{\ \cong\ }\; \mathbb{Z}/m_1\mathbb{Z} \times \cdots \times \mathbb{Z}/m_k\mathbb{Z} $$
+
+Το σύστημα $x\equiv a_i \pmod{m_i}$ έχει **μοναδική** λύση mod $M$.
+
+```{julia}
+crt(ZZ(2), ZZ(3), ZZ(3), ZZ(5))   # x ≡ 2 mod 3, x ≡ 3 mod 5 ⟹ x ≡ 8 mod 15
+```
+
+```{julia}
+crt([ZZ(2), ZZ(3), ZZ(2)], [ZZ(3), ZZ(5), ZZ(7)])
+```
+
+# Εφαρμογή: modular ΜΚΔ πολυωνύμων
+
+## Το πρόβλημα
+
+Ο απευθείας αλγόριθμος Ευκλείδη πάνω από $\mathbb{Z}[x]$/$\mathbb{Q}[x]$ έχει **εκρηκτική αύξηση** συντελεστών στα ενδιάμεσα βήματα.
+
+::: {.fragment}
+**Λύση:** δούλεψε $\bmod\, p$ για αρκετούς πρώτους (μικροί συντελεστές), ανασύνθεσε με ΚΘΥ.
+:::
+
+::: {.fragment}
+::: {.callout-warning icon=false}
+**Άτυχος πρώτος:** αν $p \mid \operatorname{lc}(f)\operatorname{lc}(g)$, ή δύο ανάγωγοι παράγοντες συμπίπτουν $\bmod\, p$ — τότε ο βαθμός mod $p$ είναι **λάθος** (πολύ μεγάλος). Κρατάμε μόνο τους πρώτους με τον ελάχιστο παρατηρούμενο βαθμό.
+:::
+:::
+
+## Υλοποίηση
+
+```{julia}
+Rmz, xmz = polynomial_ring(ZZ, :x)
+
+function symmetric_rep(a::ZZRingElem, m::ZZRingElem)
+    r = mod(a, m)
+    return r > div(m, 2) ? r - m : r
+end
+
+function modular_gcd(f, g; primes = ZZ.([11, 13, 17, 19, 23, 29, 31]))
+    gamma = gcd(leading_coefficient(f), leading_coefficient(g))
+    best_deg = typemax(Int)
+    M, acc = ZZ(1), zero(Rmz)
+    for p in primes
+        mod(gamma, p) == 0 && continue
+        Fp = GF(p)
+        Rp, xp = polynomial_ring(Fp, :xp)
+        fp = map_coefficients(c -> Fp(c), f, parent = Rp)
+        gp = map_coefficients(c -> Fp(c), g, parent = Rp)
+        dp = divexact(gcd(fp, gp), leading_coefficient(gcd(fp, gp)))
+        scaled = Fp(gamma) * dp
+        d = degree(scaled)
+        if d < best_deg
+            best_deg, M = d, ZZ(p)
+            acc = map_coefficients(c -> lift(ZZ, c), scaled, parent = Rmz)
+            continue
+        end
+        d > best_deg && continue
+        newM = M * p
+        acc = Rmz([symmetric_rep(crt(coeff(acc, i), M, lift(ZZ, coeff(scaled, i)), ZZ(p)), newM) for i in 0:d])
+        M = newM
+    end
+    return divexact(acc, content(acc))
+end
+
+d0 = 3xmz^2 - 5xmz + 11
+f, g = d0 * (xmz^3 + 7xmz - 2), d0 * (2xmz^2 - xmz + 9)
+modular_gcd(f, g)
+```
+
+```{julia}
+modular_gcd(f, g) == gcd(f, g)
+```
+
+## Σύνοψη
+
+- **Γρήγορη ύψωση σε δύναμη**: $O(\log e)$ αντί για $O(e)$ — θα ξαναφανεί στον Frobenius.
+- **Επεκτεταμένος Ευκλείδης**: $\gcd$ και αντίστροφο modulo $n$ ταυτόχρονα (Bézout).
+- **ΚΘΥ**: ανασυνθέτει από πολλά moduli.
+- **Modular ΜΚΔ πολυωνύμων**: δούλεψε mod πολλούς καλούς πρώτους, ανασύνθεσε — αποφεύγει το φούσκωμα συντελεστών.

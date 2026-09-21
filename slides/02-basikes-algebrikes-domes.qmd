@@ -1,6 +1,6 @@
 ---
 title: "Βασικές Αλγεβρικές Δομές"
-subtitle: "439 Υπολογιστική Άλγεβρα — Κεφάλαιο 2"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 2"
 author: "Ζαφειράκης Ζαφειρακόπουλος"
 date: last-modified
 lang: el
@@ -168,7 +168,7 @@ $\mathbb{Z}$ (με $\delta=|\cdot|$) και $K[x]$ (με $\delta=\deg$): Ευκ�
 
 ## Η ιεραρχία
 
-![](../figures/hierarchy.png){width=60%}
+![](../figures/hierarchy.svg){width=60%}
 
 ## GCD πολλών πολυωνύμων
 

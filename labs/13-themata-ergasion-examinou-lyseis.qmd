@@ -1,0 +1,172 @@
+---
+title: "Εργαστήριο 13: Σύνθεση και Εκκίνηση Εργασίας Εξαμήνου — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 13"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+# Μέρος Α — Capstone
+
+## Άσκηση 1 — Απαλοιφή με βάση Gröbner
+
+```{julia}
+R, (x, y) = polynomial_ring(QQ, [:x, :y])
+sys = [x^2 + y^2 - 4, x*y - 1]
+I = ideal(R, sys)
+collect(groebner_basis(I, ordering = lex(R), complete_reduction = true))
+```
+
+```{julia}
+elim = eliminate(I, [x])
+gens(elim)
+```
+
+Το ιδεώδες απαλοιφής παράγεται από το $y^4-4y^2+1$ — ένα πολυώνυμο **μόνο** στο $y$.
+
+## Άσκηση 2 — Απαλοιφή με απαλοίφουσα
+
+```{julia}
+resultant(sys[1], sys[2], 1)
+```
+
+**Ακριβώς το ίδιο πολυώνυμο.** Δύο εντελώς διαφορετικές θεωρίες — η απαλοίφουσα (πίνακας Sylvester, Εβδομάδα 6) και τα ιδεώδη απαλοιφής μέσω βάσης Gröbner ως προς lex (Εβδομάδα 11) — καταλήγουν στο ίδιο αποτέλεσμα. Αυτό δεν είναι σύμπτωση: και οι δύο υπολογίζουν γεννήτορα του (ίδιου) πρώτου ιδεώδους απαλοιφής $I\cap\mathbb{Q}[y]$, το οποίο εδώ είναι κύριο.
+
+## Άσκηση 3 — Απομόνωση πραγματικών ριζών
+
+```{julia}
+Ry, yy = polynomial_ring(QQ, :y)
+pu = to_univariate(Ry, gens(elim)[1])
+pu
+```
+
+```{julia}
+function cauchy_bound(f)
+    f = divexact(f, leading_coefficient(f))
+    cs = [coeff(f, i) for i in 0:degree(f)-1]
+    return 1 + maximum(abs.(cs))
+end
+
+function sturm_sequence(f)
+    f1 = divexact(f, gcd(f, derivative(f)))
+    seq = [f1, derivative(f1)]
+    while !iszero(seq[end])
+        push!(seq, -mod(seq[end-1], seq[end]))
+    end
+    pop!(seq)
+    return seq
+end
+
+sign_at(p, a::Union{Int,Rational,QQFieldElem}) = sign(evaluate(p, QQ(a)))
+num_sign_changes(vals) = (v = filter(!iszero, vals); count(i -> v[i]*v[i+1] < 0, 1:length(v)-1))
+
+function isolate_real_roots(f)
+    seq = sturm_sequence(f)
+    C = cauchy_bound(divexact(f, leading_coefficient(f)))
+    stack = [(-C, C)]
+    iso = Tuple{QQFieldElem,QQFieldElem}[]
+    while !isempty(stack)
+        (a, b) = pop!(stack)
+        v = num_sign_changes([sign_at(p, a) for p in seq]) - num_sign_changes([sign_at(p, b) for p in seq])
+        if v == 1
+            push!(iso, (a, b))
+        elseif v > 1
+            m = (a + b)//2
+            push!(stack, (a, m), (m, b))
+        end
+    end
+    return sort(iso, by = first)
+end
+
+isolate_real_roots(pu)
+```
+
+Τέσσερα ξένα διαστήματα, ένα ανά πραγματική ρίζα: το $y^4-4y^2+1$ έχει $y^2 = 2\pm\sqrt3$, άρα τέσσερις πραγματικές ρίζες $\pm\sqrt{2\pm\sqrt3}$.
+
+## Άσκηση 4 — Διασταύρωση με τη διάσταση του $A/I$
+
+```{julia}
+A, _ = quo(R, I)
+vector_space_dim(A)
+```
+
+$\dim_\mathbb{Q}(A/I) = 4$ — ταιριάζει ακριβώς με τις 4 πραγματικές ρίζες που απομονώσαμε. Η διάσταση μετράει **όλες** τις μιγαδικές λύσεις (με πολλαπλότητα)· εδώ συμπίπτει με το πλήθος των πραγματικών, δηλαδή **όλες** οι λύσεις του συστήματος είναι πραγματικές.
+
+Αν η διάσταση ήταν **μεγαλύτερη** από το πλήθος των πραγματικών ριζών, θα σήμαινε ότι κάποιες λύσεις είναι γνησίως μιγαδικές (όπως στο Εργαστήριο 6, Άσκηση 7) ή ότι υπάρχουν λύσεις με πολλαπλότητα $>1$.
+
+# Μέρος Β — Εκκίνηση εργασίας εξαμήνου
+
+## Άσκηση 5 — Παράδειγμα οριοθέτησης θέματος
+
+Ενδεικτική απάντηση για το θέμα *"Απομόνωση ριζών με συνεχή κλάσματα — πέρα από τα βασικά"*:
+
+1. **Ερώτημα:** Πόσο βελτιώνει στην πράξη η εκδοχή Akritas (μετάθεση κατά κάτω φράγμα ρίζας αντί κατά μονάδα) το βάθος του δέντρου του αλγορίθμου cf, σε σχέση με την απλή εκδοχή που υλοποιήσαμε στο μάθημα;
+2. **Πειράματα:**
+   - υλοποίηση του `cf_isolate_positive` με βήμα "κατά κάτω φράγμα" και μέτρηση κόμβων δέντρου, για τυχαία πολυώνυμα βαθμού $5..30$·
+   - σύγκριση με τον Sturm-based `isolate_real_roots` στα ίδια δεδομένα (κόμβοι και χρόνος)·
+   - πολυώνυμα Mignotte (με ρίζες σε απόσταση κοντά στο θεωρητικό ελάχιστο) ως worst case.
+3. **Αναφορά:** Τσιγαρίδας, *Αλγεβρικοί αλγόριθμοι και εφαρμογές στη γεωμετρία* (2006), Κεφ. 3.6, Θεωρ. 3.46–3.47.
+
+## Άσκηση 6 — Παράδειγμα πρώτου πειράματος
+
+Το "απλούστερο πείραμα" για το παραπάνω θέμα: μετρήστε τους κόμβους του δέντρου του απλού cf σε μια οικογένεια πολυωνύμων αυξανόμενου βαθμού — αρκετό για να δείτε αν η υποδομή σας δουλεύει.
+
+```{julia}
+Rx, xx = polynomial_ring(QQ, :x)
+
+function sign_changes(f)
+    cs = filter(!iszero, [coeff(f, i) for i in 0:degree(f)])
+    return count(i -> sign(cs[i]) != sign(cs[i+1]), 1:length(cs)-1)
+end
+
+function reverse_poly(f)
+    Rf = parent(f); xg = gen(Rf); d = degree(f)
+    return sum(coeff(f, d - i) * xg^i for i in 0:d)
+end
+
+function cf_nodes(f, C)
+    xg = gen(parent(f))
+    stack = [(f, QQ(1), QQ(0), QQ(0), QQ(1))]
+    nodes = 0
+    while !isempty(stack)
+        nodes += 1
+        (g, p, q, r, s) = pop!(stack)
+        v = sign_changes(g)
+        v == 0 && continue
+        v == 1 && continue
+        push!(stack, (g(xg + 1), p, p + q, r, r + s))
+        push!(stack, (reverse_poly(g)(xg + 1), q, p + q, s, r + s))
+    end
+    return nodes
+end
+
+fams = [prod(xx - k for k in 1:d) for d in 2:6]
+[(degree(f), cf_nodes(f, cauchy_bound(divexact(f, leading_coefficient(f))))) for f in fams]
+```
+
+Το πλήθος κόμβων αυξάνει με τον βαθμό — αυτή η μέτρηση είναι ακριβώς η "βάση αναφοράς" (baseline) πάνω στην οποία θα συγκρίνατε τη βελτιωμένη εκδοχή Akritas.
+
+::: {.callout-note icon=false}
+Οι απαντήσεις του Μέρους Β είναι ενδεικτικές — κάθε θέμα έχει τη δική του φυσική οριοθέτηση. Το ζητούμενο είναι η **συγκεκριμενοποίηση**: ένα σαφές ερώτημα, μετρήσιμα πειράματα, μία αναφορά.
+:::

@@ -1,0 +1,213 @@
+---
+title: "Εργαστήριο 1: Εξοικείωση με τη Julia — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 1"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Βασική αριθμητική και τύποι
+
+```{julia}
+2^62, 2^63, 2^64
+```
+
+Το `2^63` "τυλίγει" σε αρνητικό αριθμό, και το `2^64` γίνεται `0` — κλασικό **integer overflow**: ο τύπος `Int64` έχει μόνο 64 bits, οπότε ο υπολογισμός γίνεται στην πραγματικότητα modulo $2^{64}$.
+
+```{julia}
+big(2)^62, big(2)^63, big(2)^64
+```
+
+Με `BigInt` δεν υπάρχει όριο μεγέθους (αναπαράσταση μεταβλητού μήκους) — το κόστος είναι ταχύτητα, όχι ορθότητα.
+
+```{julia}
+1//3 + 1//6, typeof(1//3 + 1//6)
+```
+
+```{julia}
+1/3, typeof(1/3)
+```
+
+Το `1//3` είναι **ακριβής** ρητός αριθμός (τύπος `Rational`), ενώ το `1/3` είναι **προσεγγιστικός** δεκαδικός (`Float64`) — θεμελιώδης διάκριση για την υπολογιστική άλγεβρα, όπου θέλουμε πάντα ακριβή αριθμητική.
+
+## Άσκηση 2 — Συναρτήσεις και έλεγχος ροής
+
+```{julia}
+function is_prime_naive(n)
+    n < 2 && return false
+    for d in 2:isqrt(n)
+        if n % d == 0
+            return false
+        end
+    end
+    return true
+end
+
+is_prime_naive(17), is_prime_naive(18), is_prime_naive(2)
+```
+
+## Άσκηση 3 — Πολλαπλή αποστολή (multiple dispatch)
+
+```{julia}
+describe(x::Integer) = "ακέραιος: $x"
+describe(x::Rational) = "ρητός: $x"
+describe(x::AbstractFloat) = "δεκαδικός: $x"
+
+describe(5), describe(1//2), describe(3.14)
+```
+
+```{julia}
+#| error: true
+describe(ZZ(5))
+```
+
+Σφάλμα `MethodError`: το `ZZ(5)` έχει τύπο `ZZRingElem`, ο οποίος **δεν** είναι υποτύπος κανενός από τα `Integer`, `Rational`, `AbstractFloat` — είναι υποτύπος του `RingElem` του AbstractAlgebra/Oscar, μια εντελώς διαφορετική ιεραρχία τύπων. Καμία από τις τρεις μεθόδους δεν "ταιριάζει".
+
+```{julia}
+describe(x::RingElem) = "στοιχείο δακτυλίου OSCAR: $x"
+describe(ZZ(5)), describe(QQ(3, 4))
+```
+
+Με τη νέα μέθοδο, η Julia επιλέγει αυτόματα τη σωστή ανάλογα με τον τύπο του ορίσματος — αυτό είναι το νόημα της **πολλαπλής αποστολής**: δεν υπάρχει μία "η" `describe`, υπάρχει ένα σύνολο μεθόδων, και η Julia διαλέγει την πιο συγκεκριμένη που ταιριάζει στους τύπους όλων των ορισμάτων.
+
+## Άσκηση 4 — Πίνακες, ranges και comprehensions
+
+```{julia}
+primes_up_to_100 = [n for n in 2:100 if is_prime_naive(n)]
+```
+
+```{julia}
+squares = primes_up_to_100 .^ 2
+```
+
+```{julia}
+sum(primes_up_to_100), prod(primes_up_to_100)
+```
+
+Το γινόμενο των πρώτων έως 100 είναι ήδη ένας τεράστιος αριθμός — η Julia το υπολόγισε σωστά επειδή το `prod` γενικεύει αυτόματα τον τύπο όταν χρειάζεται (`BigInt`), αλλιώς θα είχαμε ξανά overflow όπως στην Άσκηση 1.
+
+## Άσκηση 5 — Πρώτη επαφή με το OSCAR
+
+```{julia}
+ZZ(2)^100
+```
+
+Το `ZZ(2)^100` υπολογίζεται σωστά (πλήρης ακρίβεια) γιατί το `ZZ` του OSCAR αναπαριστά ακεραίους απεριόριστου μεγέθους (μέσω FLINT), ακριβώς όπως το `BigInt`.
+
+```{julia}
+F = GF(11)
+inv(F(4)), F(4) * inv(F(4))
+```
+
+```{julia}
+F4 = GF(4)
+degree(F4), gen(F4)
+```
+
+```{julia}
+a = gen(F4)
+a^2 + a + 1   # ο γεννήτορας ικανοποιεί x²+x+1=0 — γνήσια επέκταση σώματος, όχι Z/4Z
+```
+
+```{julia}
+R4, _ = residue_ring(ZZ, 4)
+is_unit(R4(2))   # false: το 2 είναι διαιρέτης του μηδενός στο Z/4Z (2·2=4≡0)
+```
+
+Το `GF(4)` **δεν** είναι το $\mathbb{Z}/4\mathbb{Z}$ (που δεν είναι καν σώμα, αφού το `2` είναι διαιρέτης του μηδενός) — είναι το γνήσιο σώμα με 4 στοιχεία, κατασκευασμένο ως επέκταση βαθμού 2 του $\mathbb{F}_2$. Το OSCAR δέχεται `GF(q)` για **οποιαδήποτε** δύναμη πρώτου $q = p^d$, όχι μόνο για πρώτους.
+
+## Άσκηση 6 — Ο δακτύλιος πολυωνύμων $K[x]$
+
+```{julia}
+R, x = polynomial_ring(QQ, :x)
+f = 2x^3 - 3x + 1
+degree(f), leading_coefficient(f)
+```
+
+```{julia}
+evaluate(f, QQ(2))   # 2·8 - 3·2 + 1 = 16 - 6 + 1 = 11
+```
+
+```{julia}
+g = x^2 + 1
+f + g, f * g
+```
+
+```{julia}
+divrem(f, g)
+```
+
+## Άσκηση 7 — ΜΚΔ και παραγοντοποίηση
+
+```{julia}
+Rz, xz = polynomial_ring(ZZ, :x)
+f1 = (xz - 1) * (xz + 2)
+f2 = (xz - 1) * (xz - 3)
+gcd(f1, f2)   # x - 1, ο κοινός παράγοντας — όπως αναμενόταν
+```
+
+```{julia}
+factor(xz^4 - 1)   # (x-1)(x+1)(x²+1), τρεις ανάγωγοι παράγοντες πάνω από Q
+```
+
+```{julia}
+@time is_prime(ZZ(2)^61 - 1)
+```
+
+Η `is_prime` απαντά **ακαριαία** ακόμη και για το $2^{61}-1$ (πρώτος Mersenne), γιατί χρησιμοποιεί εσωτερικά πιθανοτικά/αποδεδειγμένα τεστ πρώτου (π.χ. Miller–Rabin, Pocklington) και όχι δοκιμαστική διαίρεση. Η `is_prime_naive` θα χρειαζόταν να δοκιμάσει διαιρέτες μέχρι $\sqrt{2^{61}-1} \approx 1.5\times 10^9$ — αδύνατο σε λογικό χρόνο. Θα ξαναδούμε γρήγορους αλγορίθμους αυτού του είδους (π.χ. γρήγορη ύψωση σε δύναμη) την επόμενη εβδομάδα.
+
+## Άσκηση 8 — Πολυμεταβλητοί δακτύλιοι πολυωνύμων: μια προεπισκόπηση
+
+```{julia}
+Rxy, (xxy, yxy) = polynomial_ring(QQ, [:x, :y])
+fxy = xxy^2*yxy + xxy*yxy^2 - 3
+degree(fxy, xxy), total_degree(fxy)
+```
+
+Η `degree(f, x)` δίνει τον βαθμό **ως προς το $x$** (εδώ 2, από τον όρο $x^2y$), ενώ η `total_degree(f)` δίνει τον συνολικό βαθμό μεγιστοβάθμιου μονωνύμου (εδώ 3, από τους όρους $x^2y$ και $xy^2$, και οι δύο ολικού βαθμού 3).
+
+```{julia}
+evaluate(fxy, [QQ(1), QQ(2)])   # 1²·2 + 1·2² - 3 = 2 + 4 - 3 = 3
+```
+
+```{julia}
+gxy = xxy - yxy
+fxy + gxy, fxy * gxy
+```
+
+## Άσκηση 9 — Μικρό πρόβλημα σύνθεσης
+
+```{julia}
+function pairwise_coprime(ns)
+    k = length(ns)
+    for i in 1:k, j in i+1:k
+        if gcd(ns[i], ns[j]) != 1
+            return false
+        end
+    end
+    return true
+end
+
+pairwise_coprime([3, 5, 7]), pairwise_coprime([3, 5, 6])
+```

@@ -1,0 +1,117 @@
+---
+title: "Εργαστήριο 8: Πολυώνυμα Πολλών Μεταβλητών και Αναγωγή — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 8"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Ο δακτύλιος πολλών μεταβλητών
+
+```{julia}
+R, (x, y, z) = polynomial_ring(QQ, [:x, :y, :z])
+f = x^3*y + 2x*z^2 - y^2*z
+total_degree(f)
+```
+
+```{julia}
+collect(terms(f))
+```
+
+## Άσκηση 2 — Διατάξεις όρων
+
+```{julia}
+o_lex, o_dl, o_drl = lex(R), deglex(R), degrevlex(R)
+cmp(o_lex, x*z^2, y^3), cmp(o_drl, x*z^2, y^3)
+```
+
+Πράγματι αντιστρέφεται: `x*z^2 > y^3` στη lex (το `x` κερδίζει αμέσως), αλλά `x*z^2 < y^3` στη degrevlex (η degrevlex προτιμά όρους με **μικρότερη** δύναμη στην τελευταία μεταβλητή· εδώ το `z^2` του `x*z^2` "χάνει" έναντι του `y^3` που δεν έχει καθόλου `z`).
+
+## Άσκηση 3 — Μεγιστοβάθμιος όρος
+
+```{julia}
+g = x*y^3 + x^2*z^2 - z^4
+leading_term(g, ordering = o_lex), leading_term(g, ordering = o_dl), leading_term(g, ordering = o_drl)
+```
+
+Η lex διαλέγει το `x²z²` (μεγαλύτερη δύναμη του `x`)· η deglex συμπίπτει με τη lex εδώ αφού όλοι οι όροι έχουν ίδιο ολικό βαθμό (4)· η degrevlex διαλέγει το `xy³` (μικρότερη δύναμη στο `z`, το τελευταίο μεταβλητό).
+
+## Άσκηση 4 — Έλεγχος συμβατότητας
+
+```{julia}
+function check_compatible(o; trials = 1000)
+    for _ in 1:trials
+        expa, expb, expc = (rand(0:8, 3) for _ in 1:3)
+        ma, mb, mc = x^expa[1]*y^expa[2]*z^expa[3], x^expb[1]*y^expb[2]*z^expb[3], x^expc[1]*y^expc[2]*z^expc[3]
+        if cmp(o, ma, mb) < 0 && cmp(o, ma * mc, mb * mc) >= 0
+            return false
+        end
+    end
+    return true
+end
+
+check_compatible(o_lex), check_compatible(o_dl), check_compatible(o_drl)
+```
+
+## Άσκηση 5 — Ο αλγόριθμος αναγωγής
+
+```{julia}
+R2, (x1, x2) = polynomial_ring(QQ, [:x1, :x2])
+o2 = lex(R2)
+
+function naive_reduce(a, B, o)
+    r = zero(parent(a))
+    while !iszero(a)
+        la = leading_term(a, ordering = o)
+        i = findfirst(b -> divides(la, leading_term(b, ordering = o))[1], B)
+        if i !== nothing
+            a -= divexact(la, leading_term(B[i], ordering = o)) * B[i]
+        else
+            r += la
+            a -= la
+        end
+    end
+    return r
+end
+
+h = x1^3 * x2^2
+B1 = [x1^2, x1*x2 - x2^2]
+naive_reduce(h, B1, o2)
+```
+
+## Άσκηση 6 — Μη-μοναδικότητα του υπολοίπου
+
+```{julia}
+naive_reduce(h, reverse(B1), o2)
+```
+
+Διαφορετικό υπόλοιπο ($0$ έναντι $x_2^5$) — καθαρό παράδειγμα εξάρτησης από τη σειρά, ακριβώς όπως στη διάλεξη.
+
+## Άσκηση 7 — Σύγκριση με την έτοιμη `reduce`
+
+```{julia}
+reduce(h, B1, ordering = o2), reduce(h, reverse(B1), ordering = o2)
+```
+
+Η έτοιμη `reduce` δίνει `0` και στις δύο περιπτώσεις — πιο "έξυπνη" (χρησιμοποιεί εσωτερικά τεχνικές πέρα από την αφελή, γραμμική δοκιμή διαιρετών). Για να είναι το αποτέλεσμα **μαθηματικά εγγυημένα** μοναδικό ανεξάρτητα από την υλοποίηση/σειρά, το `B1` θα έπρεπε να είναι **βάση Gröbner** του ιδεώδους που παράγει.

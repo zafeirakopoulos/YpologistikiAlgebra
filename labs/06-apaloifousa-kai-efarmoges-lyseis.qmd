@@ -1,0 +1,103 @@
+---
+title: "Εργαστήριο 6: Απαλοίφουσα και Εφαρμογές — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 6"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Πίνακας Sylvester
+
+```{julia}
+Rres, xres = polynomial_ring(QQ, :x)
+f = xres^3 - xres + 2
+g = xres^2 + xres - 1
+det(sylvester_matrix(f, g)) == resultant(f, g)
+```
+
+## Άσκηση 2 — Τύπος Poisson
+
+```{julia}
+Rc, xc = polynomial_ring(AcbField(64), :x)
+fc, gc = xc^3 - xc + 2, xc^2 + xc - 1
+ξ, η = roots(fc), roots(gc)
+ac, bc = leading_coefficient(fc), leading_coefficient(gc)
+resultant(fc, gc), ac^degree(gc) * bc^degree(fc) * prod(xi - yj for xi in ξ for yj in η)
+```
+
+## Άσκηση 3 — Διακρίνουσα μέσω απαλοίφουσας
+
+```{julia}
+Rd, (ad, bd, cd) = polynomial_ring(QQ, [:a, :b, :c])
+Rdx, xd = polynomial_ring(Rd, :x)
+fd = ad * xd^2 + bd * xd + cd
+resultant(fd, derivative(fd)) == -ad * discriminant(fd)
+```
+
+## Άσκηση 4 — Απαλοιφή μεταβλητής
+
+```{julia}
+Rxy, (xxy, yxy) = polynomial_ring(QQ, [:x, :y])
+e1 = xxy^2 + yxy - 3
+e2 = xxy - yxy^2 + 1
+resultant(e1, e2, 1)
+```
+
+## Άσκηση 5 — Implicitization
+
+```{julia}
+Ri, (ti, xi, yi) = polynomial_ring(QQ, [:t, :x, :y])
+fi = xi * (1 + ti^2) - 2ti
+gi = yi - ti^2
+resultant(fi, gi, 1)
+```
+
+## Άσκηση 6 — Αριθμητική αλγεβρικών αριθμών
+
+```{julia}
+Rz, zn = polynomial_ring(QQ, :z)
+Rzx, xn = polynomial_ring(Rz, :x)
+fn = xn^2 - 2
+gn = xn^3 - 2
+hsum = resultant(fn, gn(zn - xn))
+factor(hsum)
+```
+
+```{julia}
+homog_recip(g, z) = sum(coeff(g, i) * z^i * gen(parent(g))^(degree(g) - i) for i in 0:degree(g))
+hprod = resultant(fn, homog_recip(gn, zn))
+factor(hprod)
+```
+
+Πράγματι $z^6-32$: το $\alpha\beta=2^{5/6}$ ικανοποιεί $(\alpha\beta)^6=2^5=32$, όπως υπολογίσαμε "με το χέρι".
+
+## Άσκηση 7 — Σύνθεση: το φράγμα Bézout
+
+```{julia}
+Ry, y = polynomial_ring(AcbField(64), :y)
+h = y^4 - 2y^2 + y - 2
+roots(h)
+```
+
+Το eliminant στο $y$ έχει βαθμό 4 — ακριβώς το φράγμα Bézout $2\times2$. Από τις 4 (μιγαδικές) ρίζες, οι **2** είναι πραγματικές (αμελητέο φανταστικό μέρος) και οι άλλες 2 σχηματίζουν συζυγές μιγαδικό ζεύγος. Εδώ δεν "χάθηκαν" ρίζες στο άπειρο (όπως στο φαινόμενο που θα δούμε παρακάτω στη διάλεξη) — απλώς **δεν όλες οι μιγαδικές λύσεις του συστήματος είναι πραγματικές**: το Bézout μετράει *όλες* τις προβολικές/μιγαδικές τομές, όχι μόνο τις πραγματικές. Είναι ένας διαφορετικός (συμπληρωματικός) λόγος που το πλήθος πραγματικών λύσεων μπορεί να είναι μικρότερο από το φράγμα Bézout.

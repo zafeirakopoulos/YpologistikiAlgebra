@@ -1,0 +1,121 @@
+---
+title: "Εργαστήριο 4: Παραγοντοποίηση Πολυωνύμων — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 4"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — Το μέρος χωρίς τετράγωνα
+
+```{julia}
+Rq, xq = polynomial_ring(QQ, :x)
+f = (xq - 1)^3 * (xq + 2)^2 * (xq - 5)
+divexact(f, gcd(f, derivative(f)))   # (x-1)(x+2)(x-5), κάθε ρίζα μία φορά
+```
+
+## Άσκηση 2 — Παραγοντοποίηση πάνω από $\mathbb{F}_q$
+
+```{julia}
+Rp, xp = polynomial_ring(GF(7), :x)
+f7 = (xp - 1) * (xp - 2) * (xp - 3) * (xp^2 + 1)
+factor(f7)   # x²+1 ανάγωγο mod 7 (το -1 δεν είναι τετράγωνο mod 7)
+```
+
+```{julia}
+Rp5, xp5 = polynomial_ring(GF(5), :x)
+f5 = (xp5 - 1) * (xp5 - 2) * (xp5 - 3) * (xp5^2 + 1)
+factor(f5)
+```
+
+Mod 5 το `x²+1` **διασπάται**: $(x+2)(x+3)$, γιατί $2^2=4\equiv -1 \pmod 5$ (το $-1$ **είναι** τετράγωνο mod 5). Το αν ένα ανάγωγο πολυώνυμο παραμένει ανάγωγο modulo $p$ εξαρτάται ουσιωδώς από το $p$.
+
+## Άσκηση 3 — Ο υπόχωρος Berlekamp
+
+```{julia}
+n = degree(f7)
+q = 7
+cols = [[coeff(powermod(xp^i, q, f7), j) for j in 0:n-1] for i in 0:n-1]
+Q = matrix(GF(7), hcat(cols...))
+M = Q - identity_matrix(GF(7), n)
+ns_dim, ns = nullspace(M)
+ns_dim, length(factor(f7))
+```
+
+Η διάσταση του πυρήνα (`4`) ταιριάζει ακριβώς με το πλήθος των ανάγωγων παραγόντων (`4`) — όπως προβλέπει το θεώρημα του Berlekamp.
+
+## Άσκηση 4 — Cantor–Zassenhaus: διαχωρισμός κατά βαθμό
+
+```{julia}
+d1 = gcd(powermod(xp, q^1, f7) - xp, f7)
+d2 = gcd(powermod(xp, q^2, f7) - xp, f7)
+d1, d2
+```
+
+Το `d1` (βαθμού 3) είναι το γινόμενο των τριών γραμμικών παραγόντων $(x-1)(x-2)(x-3)$· το `d2` (βαθμού 5, όλο το `f7`) περιέχει και τον τετραγωνικό παράγοντα $x^2+1$ — συνεπές με την `factor(f7)` της Άσκησης 2.
+
+## Άσκηση 5 — Από τα πεπερασμένα σώματα στο $\mathbb{Z}[x]$
+
+```{julia}
+Rz, xz = polynomial_ring(ZZ, :x)
+fz = xz^4 - 10xz^2 + 1
+factor(fz)   # ανάγωγο πάνω από Q
+```
+
+```{julia}
+for p in [2, 3, 5, 7, 11]
+    Fp = GF(p)
+    Rpp, xpp = polynomial_ring(Fp, :x)
+    fp = map_coefficients(c -> Fp(c), fz, parent = Rpp)
+    println(p, ": ", factor(fp))
+end
+```
+
+Στο $p=2$ και $p=3$ εμφανίζονται **επαναλαμβανόμενοι** παράγοντες ($(x+1)^4$ και $(x^2+1)^2$ αντίστοιχα) — η αναγωγή modulo αυτούς τους πρώτους **δεν** είναι χωρίς τετράγωνα. Η ανύψωση Hensel απαιτεί $\gcd(g_0,h_0)=1 \pmod p$, δηλαδή αναγωγή χωρίς τετράγωνα (και "χωρισμένη") — άρα οι $p=2,3$ είναι **ακατάλληλοι** γι' αυτήν, ανεξάρτητα από το πόσο λίγους distinct παράγοντες δίνουν.
+
+## Άσκηση 6 — Συνδυαστική έκρηξη
+
+Με $r$ παράγοντες mod $p^k$, τα μη κενά γνήσια υποσύνολά τους είναι $2^r - 2$ (αφαιρώντας το κενό σύνολο και το ίδιο το σύνολο, που δεν αντιστοιχούν σε γνήσιο διαχωρισμό)· στην πράξη μετράμε συνήθως $2^{r-1}-1$ αν εκμεταλλευτούμε τη συμμετρία $S \leftrightarrow S^c$ (ένα υποσύνολο και το συμπλήρωμά του δίνουν τον ίδιο διαχωρισμό).
+
+```{julia}
+r = 20
+2^(r - 1) - 1
+```
+
+Πάνω από μισό εκατομμύριο συνδυασμοί για μόλις 20 παράγοντες — εκθετικό, ακριβώς το πρόβλημα που έλυσε ο LLL.
+
+## Άσκηση 7 — Ο "τυχερός" πρώτος
+
+```{julia}
+function count_factors_mod(f, p)
+    Fp = GF(p)
+    Rpp, xpp = polynomial_ring(Fp, :x)
+    fp = map_coefficients(c -> Fp(c), f, parent = Rpp)
+    return length(factor(fp))
+end
+
+[(p, count_factors_mod(fz, p)) for p in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]]
+```
+
+Αν κοιτάξουμε μόνο τον αριθμό, οι $p=2,3$ φαίνονται "καλύτεροι" (1 distinct παράγοντας) — αλλά είναι ακριβώς οι **ακατάλληλοι** πρώτοι της Άσκησης 5 (αναγωγή που δεν είναι χωρίς τετράγωνα)! Εξαιρώντας τους, ο πραγματικά "τυχερός" πρώτος είναι όποιος δίνει τον **ελάχιστο αριθμό squarefree distinct παραγόντων** — εδώ οι περισσότεροι πρώτοι δίνουν 2 (συμφωνώντας με την πραγματική παραγοντοποίηση, που έχει 1 ανάγωγο παράγοντα βαθμού 4 πάνω από το $\mathbb{Q}$ αλλά σπάει σε 2 τετραγωνικούς modulo κάθε "καλό" πρώτο), ενώ ο $p=23$ είναι ο πιο "άτυχος" με 4 — εκεί θα χρειαζόμασταν να δοκιμάσουμε περισσότερους συνδυασμούς στο συνδυαστικό βήμα του κλασικού αλγορίθμου Zassenhaus.

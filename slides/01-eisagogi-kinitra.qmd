@@ -1,6 +1,6 @@
 ---
 title: "Εισαγωγή και Κίνητρα"
-subtitle: "439 Υπολογιστική Άλγεβρα — Κεφάλαιο 1"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 1"
 author: "Ζαφειράκης Ζαφειρακόπουλος"
 date: last-modified
 lang: el
@@ -179,7 +179,7 @@ $$ (i,\ p) \;=\; \text{"η } i\text{-οστή ρίζα του } p\text{"} $$
 
 ## Παράδειγμα: Ρομποτική
 
-![](../figures/robot.png){width=45%}
+![](../figures/robot.svg){width=45%}
 
 $$ x_0 = a_1 \cos\theta_1 + a_2\cos(\theta_1+\theta_2) $$
 $$ y_0 = a_1 \sin\theta_1 + a_2\sin(\theta_1+\theta_2) $$

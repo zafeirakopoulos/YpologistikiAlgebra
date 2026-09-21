@@ -1,0 +1,122 @@
+---
+title: "Εργαστήριο 12: Πολυπλοκότητα και Κρυπτογραφία — Λύσεις"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 12"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    theme: cosmo
+    embed-resources: true
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar, Random
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+```
+
+## Άσκηση 1 — lex έναντι degrevlex: το κυκλικό σύστημα
+
+```{julia}
+R, (x1, x2, x3, x4) = polynomial_ring(QQ, [:x1, :x2, :x3, :x4])
+cyc = [x1 + x2 + x3 + x4,
+       x1*x2 + x2*x3 + x3*x4 + x4*x1,
+       x1*x2*x3 + x2*x3*x4 + x3*x4*x1 + x4*x1*x2,
+       x1*x2*x3*x4 - 1]
+I = ideal(R, cyc)
+
+Glex = groebner_basis(I, ordering = lex(R), complete_reduction = true)
+Gdrl = groebner_basis(I, ordering = degrevlex(R), complete_reduction = true)
+
+(length(Glex), maximum(total_degree(g) for g in Glex)),
+(length(Gdrl), maximum(total_degree(g) for g in Gdrl))
+```
+
+Η `lex` βάση έχει λιγότερα στοιχεία (6 έναντι 7) αλλά **πολύ μεγαλύτερους βαθμούς** (μέγιστος 8 έναντι 6). Αυτό είναι το τυπικό μοτίβο: η lex συμπυκνώνει την πληροφορία σε λίγα πολυώνυμα υψηλού βαθμού (χρήσιμα για απαλοιφή/επίλυση), ενώ η degrevlex κρατά τους βαθμούς χαμηλά — γι' αυτό και είναι εμπειρικά η φθηνότερη επιλογή γενικού σκοπού.
+
+## Άσκηση 2 — Χρονομέτρηση
+
+```{julia}
+# προθέρμανση (JIT): η πρώτη κλήση περιλαμβάνει χρόνο μεταγλώττισης
+groebner_basis(ideal(R, cyc), ordering = lex(R), complete_reduction = true)
+groebner_basis(ideal(R, cyc), ordering = degrevlex(R), complete_reduction = true)
+
+t_lex = @elapsed groebner_basis(ideal(R, cyc), ordering = lex(R), complete_reduction = true)
+t_drl = @elapsed groebner_basis(ideal(R, cyc), ordering = degrevlex(R), complete_reduction = true)
+t_lex, t_drl
+```
+
+Προσοχή στη **μεθοδολογία**: χωρίς την προθέρμανση, η πρώτη μέτρηση θα περιλάμβανε δευτερόλεπτα μεταγλώττισης JIT και θα ήταν εντελώς παραπλανητική. (Για `cyclic(4)` το ίδιο το πρόβλημα είναι μικρό· η διαφορά lex/degrevlex γίνεται δραματική από `cyclic(6)` και πάνω.)
+
+## Άσκηση 3 — Toy MQ: αλγεβρική κρυπτανάλυση
+
+```{julia}
+Random.seed!(42)
+F = GF(2)
+n = 6
+Rq, xs = polynomial_ring(F, ["x$i" for i in 1:n])
+a = [F(1), F(0), F(1), F(1), F(0), F(0)]
+
+function rand_quad(R, xs, a)
+    f = zero(R)
+    for i in 1:length(xs), j in i:length(xs)
+        rand(Bool) && (f += xs[i] * xs[j])
+    end
+    for i in 1:length(xs)
+        rand(Bool) && (f += xs[i])
+    end
+    return f - evaluate(f, a)   # "διόρθωση" ώστε f(a) = 0
+end
+
+eqs = [rand_quad(Rq, xs, a) for _ in 1:8]
+all(iszero(evaluate(f, a)) for f in eqs)   # το a είναι όντως ρίζα
+```
+
+```{julia}
+field_eqs = [xs[i]^2 - xs[i] for i in 1:n]
+Imq = ideal(Rq, vcat(eqs, field_eqs))
+G = groebner_basis(Imq, ordering = lex(Rq), complete_reduction = true)
+collect(G)
+```
+
+Η βάση Gröbner εκφυλίζεται σε **γραμμικές** μορφές $x_i - a_i$ — διαβάζουμε το μυστικό απευθείας: $x_1=1, x_2=0, x_3=1, x_4=1, x_5=0, x_6=0$, δηλαδή ακριβώς το `a`. Αυτό ακριβώς κάνει μια επίθεση αλγεβρικής κρυπτανάλυσης σε σχήμα MQ (σε πραγματικές διαστάσεις, φυσικά, ο υπολογισμός είναι απαγορευτικά ακριβός — εκεί στηρίζεται η ασφάλεια).
+
+## Άσκηση 4 — Πώς κλιμακώνει;
+
+```{julia}
+function mq_experiment(n, m; seed = 42)
+    Random.seed!(seed)
+    R, xs = polynomial_ring(F, ["x$i" for i in 1:n])
+    aa = [F(rand(Bool)) for _ in 1:n]
+    eqs = [rand_quad(R, xs, aa) for _ in 1:m]
+    fieldeqs = [xs[i]^2 - xs[i] for i in 1:n]
+    I = ideal(R, vcat(eqs, fieldeqs))
+    t = @elapsed G = groebner_basis(I, ordering = lex(R), complete_reduction = true)
+    return (n = n, m = m, seconds = round(t, digits = 4), gb_size = length(G))
+end
+
+mq_experiment(4, 6)   # προθέρμανση
+[mq_experiment(n, ceil(Int, 1.3n)) for n in [4, 6, 8, 10]]
+```
+
+Ο χρόνος αυξάνει γρήγορα με το $n$ (και η αύξηση επιταχύνεται) — ακόμη και σε αυτή την "παιχνιδιάρικη" κλίμακα. Για πραγματικό σχήμα MQ με $n$ στις εκατοντάδες, ο ίδιος υπολογισμός γίνεται εντελώς ανέφικτος: αυτό είναι το θεμέλιο της ασφάλειας τέτοιων σχημάτων.
+
+## Άσκηση 5 — Συζήτηση
+
+1. **Γιατί το φράγμα Dubé δεν καθιστά τις βάσεις Gröbner άχρηστες:** είναι φράγμα **χειρότερης περίπτωσης**. Τα ιδεώδη που το πετυχαίνουν (Mayr–Meyer) είναι τεχνητά κατασκευασμένα· για "γενικά" ιδεώδη τα πραγματικά φράγματα συνδέονται με την κανονικότητα Castelnuovo–Mumford και είναι πολύ πιο ήπια. Επιπλέον, η επιλογή διάταξης (degrevlex) και αλγόριθμοι όπως οι F4/F5 βελτιώνουν δραματικά την πρακτική απόδοση.
+
+2. **Τι εγγυάται το Mayr–Meyer:** ότι το διπλά εκθετικό μέγεθος είναι **εγγενές στο πρόβλημα** — υπάρχει οικογένεια ιδεωδών όπου *κάθε* βάση Gröbner, ως προς *οποιαδήποτε* διάταξη, έχει στοιχείο διπλά εκθετικού βαθμού, και το ideal membership είναι EXPSPACE-hard. Τι **δεν** εγγυάται: ότι *κάθε* (ή έστω το τυπικό) στιγμιότυπο είναι τόσο δύσκολο — δεν λέει τίποτα για τη μέση περίπτωση ή για δομημένα ιδεώδη της πράξης.
+
+3. **Γιατί το δημόσιο κλειδί πρέπει να μοιάζει "γενικό":** αν το σύστημα έχει κρυφή δομή που ένας επιτιθέμενος μπορεί να ανιχνεύσει, η βάση Gröbner υπολογίζεται πολύ ταχύτερα από το αναμενόμενο και το σχήμα σπάει. Ιστορικά ακριβώς αυτό συνέβη σε πρώιμες παραμετροποιήσεις του HFE: το σύστημα αποδείχθηκε λιγότερο "τυχαίο" απ' ό,τι υποτίθεται, με αποτέλεσμα δραματικά μικρότερο πραγματικό κόστος επίθεσης.

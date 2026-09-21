@@ -1,0 +1,293 @@
+---
+title: "Απομόνωση Πραγματικών Ριζών"
+subtitle: "439 Υπολογιστική Άλγεβρα — Εβδομάδα 5"
+author: "Ζαφειράκης Ζαφειρακόπουλος"
+date: last-modified
+lang: el
+format:
+  revealjs:
+    theme: simple
+    slide-number: true
+    embed-resources: true
+    transition: fade
+    incremental: false
+    code-line-numbers: false
+bibliography: ../references.bib
+jupyter: julia-1.12
+execute:
+  freeze: auto
+  warning: false
+  fig-format: png
+---
+
+```{julia}
+#| echo: false
+#| output: false
+using Oscar
+AbstractAlgebra.set_html_as_latex(true)
+if isdefined(Main, :IJulia) && Main.IJulia.inited
+    Base.showable(::MIME"text/latex", ::Union{AbstractAlgebra.NCRingElem,AbstractAlgebra.MatrixElem}) = false
+end
+Rx, xr = polynomial_ring(QQ, :x)
+```
+
+## Ατζέντα
+
+- Φράγματα ριζών
+- Κανόνας προσήμων του Descartes
+- Θεώρημα Budan και διχοτόμηση
+- Ακολουθίες Sturm
+- Απομόνωση με συνεχή κλάσματα
+- Φράγμα διαχωρισμού και πολυπλοκότητα
+
+# Φράγματα ριζών
+
+## Πάνω φράγματα
+
+Για $f=x^d+c_{d-1}x^{d-1}+\cdots+c_0$ **μονικό**, $f(a)=0$:
+
+- **Cauchy:** $|a| < 1+\max_i |c_i|$
+- **Zassenhaus:** $|a| \le 2\max_i |c_i|^{1/(d-i)}$
+- **Landau:** $|a| \le (c_0^2+\cdots+c_{d-1}^2)^{1/2}$
+
+```{julia}
+function cauchy_bound(f)
+    f = divexact(f, leading_coefficient(f))
+    cs = [coeff(f, i) for i in 0:degree(f)-1]
+    return 1 + maximum(abs.(cs))
+end
+
+cauchy_bound(xr^3 - 2xr - 5)
+```
+
+# Κανόνας προσήμων του Descartes
+
+## Θεώρημα (Descartes)
+
+Ο αριθμός των **θετικών** ριζών ενός $f$ (με πολλαπλότητα) ισούται με τις εναλλαγές προσήμου στους συντελεστές, ή διαφέρει κατά **άρτιο**.
+
+::: {.fragment}
+Αρνητικές ρίζες: εφαρμόζουμε το ίδιο στο $f(-x)$.
+:::
+
+## Παράδειγμα
+
+```{julia}
+function sign_changes(f)
+    cs = filter(!iszero, [coeff(f, i) for i in 0:degree(f)])
+    return count(i -> sign(cs[i]) != sign(cs[i+1]), 1:length(cs)-1)
+end
+
+g = -5xr^11 - 9xr^10 + 8xr^5 + 5xr^3 - 3xr^2 - xr + 1
+sign_changes(g)   # άρα 3 ή 1 θετικές ρίζες
+```
+
+# Θεώρημα Budan και διχοτόμηση
+
+## Θεώρημα (Budan)
+
+Για $\rho<r$, $V_\rho,V_r$ = εναλλαγές προσήμου των $f(x+\rho)$, $f(x+r)$:
+
+1. $V_\rho \ge V_r$
+2. πλήθος ριζών στο $(\rho,r) \le V_\rho - V_r$
+3. αν γνησίως μικρότερο, η διαφορά είναι **άρτια**
+
+## Αλγόριθμος διχοτόμησης
+
+Ξεκινώντας από $[-C,C]$ (φράγμα Cauchy), για κάθε $(\rho,r)$:
+
+- $V_\rho-V_r=0$: καμία ρίζα, πετάμε
+- $V_\rho-V_r=1$: **απομονώνει** μία ρίζα
+- $V_\rho-V_r>1$: χωρίζουμε στη μέση
+
+::: {.fragment}
+::: {.callout-warning icon=false}
+Το φράγμα Budan μπορεί να **υπερεκτιμά** κατά άρτιο αριθμό. Οι ακολουθίες Sturm λύνουν αυτό.
+:::
+:::
+
+# Ακολουθίες Sturm
+
+## Ορισμός
+
+$(f_1,\dots,f_k)$ είναι **ακολουθία Sturm** για το $f$ στο $[a,b]$ αν $f_1=f$ και:
+
+1. $f_1(a)f_1(b)\neq 0$
+2. $f_k(c)\neq 0$ σε όλο το $[a,b]$
+3. $f_j(c)=0 \implies f_{j-1}(c)f_{j+1}(c)<0$
+4. $f_1(c)=0 \implies$ το $f_1f_2$ αλλάζει πρόσημο $-\to+$
+
+::: {.fragment}
+Κατασκευή (square-free $f$): $f_1=f,\ f_2=f',\ f_i=-\operatorname{rem}(f_{i-2},f_{i-1})$.
+:::
+
+## Θεώρημα (Sturm)
+
+Το πλήθος **διακριτών** ριζών του $f_1$ στο $[a,b]$ είναι **ακριβώς** $V(a)-V(b)$.
+
+```{julia}
+function sturm_sequence(f)
+    f1 = divexact(f, gcd(f, derivative(f)))
+    seq = [f1, derivative(f1)]
+    while !iszero(seq[end])
+        push!(seq, -mod(seq[end-1], seq[end]))
+    end
+    pop!(seq)
+    return seq
+end
+
+sign_at(p, a::Union{Int,Rational,QQFieldElem}) = sign(evaluate(p, QQ(a)))
+function sign_at(p, a::AbstractFloat)
+    s = sign(leading_coefficient(p))
+    return a > 0 ? s : s * (iseven(degree(p)) ? 1 : -1)
+end
+
+num_sign_changes(vals) = (v = filter(!iszero, vals); count(i -> v[i]*v[i+1] < 0, 1:length(v)-1))
+
+function sturm_root_count(f, a, b)
+    seq = sturm_sequence(f)
+    return num_sign_changes([sign_at(p, a) for p in seq]) - num_sign_changes([sign_at(p, b) for p in seq])
+end
+
+sturm_root_count(xr^2 - 2, 0, 2)          # μία ρίζα (το √2) στο [0,2]
+```
+
+## Απομόνωση όλων των ριζών
+
+Ίδια διχοτόμηση όσο και με Budan, αλλά με τον *ακριβή* μετρητή Sturm:
+
+![](../figures/rootiso.svg){width=80%}
+
+```{julia}
+function isolate_real_roots(f)
+    seq = sturm_sequence(f)
+    C = cauchy_bound(divexact(f, leading_coefficient(f)))
+    stack = [(-C, C)]
+    isolated = Tuple{QQFieldElem,QQFieldElem}[]
+    while !isempty(stack)
+        (a, b) = pop!(stack)
+        v = num_sign_changes([sign_at(p, a) for p in seq]) - num_sign_changes([sign_at(p, b) for p in seq])
+        if v == 1
+            push!(isolated, (a, b))
+        elseif v > 1
+            m = (a + b)//2
+            push!(stack, (a, m), (m, b))
+        end
+    end
+    return sort(isolated, by = first)
+end
+
+isolate_real_roots((xr - 1) * (xr - 2) * (xr - 3) * (xr + 5))
+```
+
+# Συνεχή κλάσματα
+
+## Ο αλγόριθμος cf
+
+Ο αλγόριθμος **cf** (Vincent 1836, Uspensky, Akritas) απομονώνει ρίζες σε "χώρο συνεχών κλασμάτων" αντί να διχοτομεί κυριολεκτικά ένα διάστημα.
+
+::: {.callout-note icon=false}
+[@tsigaridas2006phd, Κεφ. 3.6]
+:::
+
+::: {.fragment}
+Αναγωγήματα $P_n/Q_n$ ενός συνεχούς κλάσματος $[a_0;a_1,\dots]$:
+$$ P_{n+1}=a_{n+1}P_n{+}P_{n-1}, \qquad Q_{n+1}=a_{n+1}Q_n{+}Q_{n-1}. $$
+:::
+
+## Θεώρημα (Vincent, 1836)
+
+Έστω $A$ χωρίς τετράγωνα, βαθμού $d$, φράγμα διαχωρισμού $\sigma$. Υπάρχει $n$ (φραγμένο συναρτήσει $d,\sigma$) ώστε, για **κάθε** ακολουθία θετικών ακεραίων $a_0,\dots,a_n$, ο μετασχηματισμός
+$$ X \longmapsto [a_0;a_1,\dots,a_n,X] = \frac{P_nX+P_{n-1}}{Q_nX+Q_{n-1}} $$
+μετατρέπει το $A$ σε πολυώνυμο με **το πολύ μία** εναλλαγή προσήμου.
+
+## Ο αλγόριθμος
+
+Διατηρούμε $M(X)=\dfrac{pX+q}{rX+s}$ και το $\hat A=A\circ M$ (αριθμητής, χωρίς παρονομαστές). Μετράμε τις εναλλαγές προσήμου $V$ του $\hat A$:
+
+- $V=0$: καμία ρίζα — σταματάμε
+- $V=1$: **μία** ρίζα (Vincent) — άκρα $M(0),M(\infty)$
+- $V\ge2$: διακλάδωση σε $(1,\infty)$ ($X\mapsto X+1$) και $(0,1)$ ($X\mapsto 1/(1+X)$)
+
+```{julia}
+function reverse_poly(f)
+    Rf = parent(f); xg = gen(Rf); d = degree(f)
+    return sum(coeff(f, d - i) * xg^i for i in 0:d)
+end
+
+function cf_isolate_positive(f, C)
+    xg = gen(parent(f))
+    intervals = Tuple{QQFieldElem,QQFieldElem}[]
+    stack = [(f, QQ(1), QQ(0), QQ(0), QQ(1))]   # (πολυώνυμο, p, q, r, s)
+    while !isempty(stack)
+        (g, p, q, r, s) = pop!(stack)
+        v = sign_changes(g)
+        if v == 0
+            continue
+        elseif v == 1
+            a = q // s
+            b = iszero(r) ? C : p // r
+            push!(intervals, minmax(a, b))
+        else
+            g1 = g(xg + 1)
+            push!(stack, (g1, p, p + q, r, r + s))
+            g2 = reverse_poly(g)(xg + 1)
+            push!(stack, (g2, q, p + q, s, r + s))
+        end
+    end
+    return intervals
+end
+
+function cf_isolate_real_roots(f)
+    C = cauchy_bound(divexact(f, leading_coefficient(f)))
+    xg = gen(parent(f))
+    pos = cf_isolate_positive(f, C)
+    neg = [(-b, -a) for (a, b) in cf_isolate_positive(f(-xg), C)]
+    return sort(vcat(pos, neg), by = first)
+end
+
+cf_isolate_real_roots((xr - 1) * (xr - 2) * (xr - 3) * (xr + 5))
+```
+
+## Πολυπλοκότητα
+
+Ίδιες ρίζες, ίδια διαστήματα με το `isolate_real_roots` — διαφορετική αναδρομική κατασκευή.
+
+::: {.fragment}
+Με κατάλληλη υλοποίηση [@tsigaridas2006phd, Θεώρ. 3.46–3.47]: $O(d^2+d\sigma)$ βήματα — **ίδια τάξη** με την υποδιαίρεση.
+:::
+
+# Φράγμα διαχωρισμού
+
+## Πόσο βαθιά χρειάζεται να διχοτομήσουμε;
+
+::: {.callout-note icon=false}
+## Ορισμός (Φράγμα διαχωρισμού)
+$$ \operatorname{sep}(f) = \min_{i\neq j} |\gamma_i-\gamma_j|. $$
+:::
+
+::: {.fragment}
+::: {.callout-important icon=false}
+## Θεώρημα (Mignotte)
+$$ \operatorname{sep}(f) \;\ge\; \sqrt{\dfrac{8}{d^{d+2}}} \cdot \dfrac{1}{(1+\max_i|a_i|)^{d}}, $$
+και αυτό είναι **βέλτιστο**.
+:::
+:::
+
+## Συνέπεια: φράγμα πολυπλοκότητας
+
+$$ L = \log(\operatorname{sep}(f)) \in O\!\left(d \log\left(\max_i|a_i|\right)\right) $$
+
+::: {.fragment}
+Αυτό φράσσει το **βάθος** του δέντρου υποδιαίρεσης — άρα και την πολυπλοκότητα ολόκληρης της μεθόδου.
+
+("αφελή" άνω φράγματα συχνά πιο ήπια απ' ό,τι θα φοβόμασταν a priori)
+:::
+
+## Σύνοψη
+
+- Φράγματα ριζών (Cauchy, Zassenhaus, Landau) δίνουν αρχικό διάστημα με όλες τις ρίζες.
+- Ο κανόνας Descartes και το θεώρημα Budan μετρούν (ή φράσσουν) ρίζες μέσω εναλλαγών προσήμου.
+- Οι **ακολουθίες Sturm** δίνουν τον **ακριβή** αριθμό ριζών· με διχοτόμηση, απομονώνουν κάθε ρίζα.
+- Ο αλγόριθμος **cf** (συνεχή κλάσματα, Vincent) απομονώνει τις ίδιες ρίζες με μετασχηματισμούς Möbius, ίδια τάξη πολυπλοκότητας.
+- Το φράγμα διαχωρισμού (Mignotte) φράσσει το βάθος του δέντρου υποδιαίρεσης.
