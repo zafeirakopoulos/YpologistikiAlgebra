@@ -444,7 +444,7 @@
   <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="Ζαφειράκης Ζαφειρακόπουλος">
-  <meta name="dcterms.date" content="2026-09-04">
+  <meta name="dcterms.date" content="2026-09-22">
   <title>Απαλοίφουσα και Εφαρμογές</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -1034,7 +1034,7 @@ var requirejs,require,define;(function(global,setTimeout){var req,s,head,baseEle
 </div>
 </div>
 
-  <p class="date">2026-09-04</p>
+  <p class="date">2026-09-22</p>
 </section>
 <section id="ατζέντα" class="slide level2">
 <h2>Ατζέντα</h2>
@@ -1050,7 +1050,7 @@ var requirejs,require,define;(function(global,setTimeout){var req,s,head,baseEle
 <h2>Κίνητρο</h2>
 <p>Το <span class="math inline">\(f=ax^2+bx+c\)</span> έχει διπλή ρίζα <span class="math inline">\(\iff\)</span> τα <span class="math inline">\(f,f&#39;\)</span> έχουν κοινή ρίζα <span class="math inline">\(\iff\)</span> η διακρίνουσα <span class="math inline">\(D=b^2-4ac\)</span> μηδενίζεται.</p>
 <div class="fragment">
-<p>Η <strong>απαλοίφουσα</strong> γενικεύει αυτή την ιδέα σε οποιοδήποτε ζεύγος πολυωνύμων.</p>
+<p>Η <strong>απαλοίφουσα</strong> απαντά στο ίδιο ερώτημα για <em>οποιοδήποτε</em> ζεύγος πολυωνύμων — και στο ζεύγος <span class="math inline">\((f,f&#39;)\)</span> ανακτά τη διακρίνουσα.</p>
 </div>
 </section>
 <section>
@@ -1082,7 +1082,7 @@ b_{d_2} &amp; b_{d_2-1} &amp; \cdots &amp; b_1 &amp; b_0 &amp; &amp; &amp; \\
 <h2>Θεώρημα</h2>
 <p><span class="math display">\[ \operatorname{Res}_x(f,g) = 0 \iff f,g \text{ έχουν κοινό παράγοντα} \]</span></p>
 <p>(ισοδύναμα κοινή ρίζα, εκτός αν μηδενίζονται και οι δύο μεγιστοβάθμιοι συντελεστές)</p>
-<div id="2e1f42f6" class="cell" data-execution_count="2">
+<div id="da2747f7" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="3">
 $\begin{array}{ccc}
 2 &amp; 3 &amp; -1 \\
@@ -1091,7 +1091,7 @@ $\begin{array}{ccc}
 \end{array}$
 </div>
 </div>
-<div id="3401d192" class="cell" data-execution_count="3">
+<div id="af5b9815" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>true</code></pre>
 </div>
@@ -1101,7 +1101,7 @@ $\begin{array}{ccc}
 <h2>Τύπος Poisson</h2>
 <p><span class="math display">\[ \operatorname{Res}_x(f,g) = a_{d_1}^{d_2} \prod_i g(\xi_i) = a_{d_1}^{d_2} b_{d_2}^{d_1} \prod_{i,j} (\xi_i - \eta_j) \]</span></p>
 <p>όπου <span class="math inline">\(\xi_i,\eta_j\)</span> οι ρίζες των <span class="math inline">\(f,g\)</span>.</p>
-<div id="d922d5ba" class="cell" data-execution_count="4">
+<div id="71866dd0" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>([-338.000000000000000 +/- 1.04e-16], [-338.00000 +/- 5.95e-6] + [+/- 5.63e-6]*im)</code></pre>
 </div>
@@ -1110,7 +1110,7 @@ $\begin{array}{ccc}
 <section id="διακρίνουσα" class="slide level2">
 <h2>Διακρίνουσα</h2>
 <p>Για <span class="math inline">\(f=ax^2+bx+c\)</span>: <span class="math inline">\(\operatorname{Res}_x(f,f&#39;) = -a\cdot\operatorname{disc}(f)\)</span></p>
-<div id="0892288f" class="cell" data-execution_count="5">
+<div id="60c4a49c" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>true</code></pre>
 </div>
@@ -1165,7 +1165,7 @@ $\begin{array}{ccc}
 <section id="παράδειγμα-άθροισμα" class="slide level2">
 <h2>Παράδειγμα: άθροισμα</h2>
 <p><span class="math inline">\(\sqrt2+\sqrt3\)</span> ρίζα του <span class="math inline">\(x^4-10x^2+1\)</span> (ανάγωγο πάνω από <span class="math inline">\(\mathbb{Q}\)</span>, από την §[Παραγοντοποίηση πολυωνύμων]).</p>
-<div id="f04052c3" class="cell" data-execution_count="6">
+<div id="1497ec53" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display" data-execution_count="7">
 $z^{4} - 10 z^{2} + 1$
 </div>
@@ -1173,7 +1173,7 @@ $z^{4} - 10 z^{2} + 1$
 </section>
 <section id="παράδειγμα-γινόμενο" class="slide level2">
 <h2>Παράδειγμα: γινόμενο</h2>
-<div id="a35aa820" class="cell" data-execution_count="7">
+<div id="105d8a34" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display" data-execution_count="8">
 $z^{2} - 18$
 </div>
@@ -1226,7 +1226,7 @@ $z^{2} - 18$
 <section id="απαλοιφή-μέσω-απαλοίφουσας" class="slide level2">
 <h2>Απαλοιφή μέσω απαλοίφουσας</h2>
 <p>Για <span class="math inline">\(f,g\in K[x,y]\)</span>: το <span class="math inline">\(\operatorname{Res}_x(f,g)\in K[y]\)</span> μηδενίζεται ακριβώς όταν <span class="math inline">\(f,g\)</span> έχουν κοινή ρίζα ως προς <span class="math inline">\(x\)</span>.</p>
-<div id="833ffb4e" class="cell" data-execution_count="8">
+<div id="65f479a5" class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display" data-execution_count="9">
 $2 y^{2} - 1$
 </div>
@@ -1235,7 +1235,7 @@ $2 y^{2} - 1$
 <section id="implicitization-παραμετρικών-καμπυλών" class="slide level2">
 <h2>Implicitization παραμετρικών καμπυλών</h2>
 <p>Η παραμέτρηση <span class="math inline">\(x(t)=\dfrac{1-t^2}{1+t^2}\)</span>, <span class="math inline">\(y(t)=\dfrac{2t}{1+t^2}\)</span> του μοναδιαίου κύκλου:</p>
-<div id="900385f2" class="cell" data-execution_count="9">
+<div id="d43d4d4f" class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display" data-execution_count="10">
 $4 x^{2} + 4 y^{2} - 4$
 </div>
