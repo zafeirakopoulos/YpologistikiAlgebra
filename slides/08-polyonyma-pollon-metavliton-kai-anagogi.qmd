@@ -117,7 +117,7 @@ $$ a = q_1b_1+\cdots+q_kb_k+r $$
 ## Το υπόλοιπο δεν είναι πάντα μοναδικό!
 
 ```{julia}
-function naive_reduce(a, B, o)
+function reduction(a, B, o)
     r = zero(parent(a))
     while !iszero(a)
         la = leading_term(a, ordering = o)
@@ -135,15 +135,15 @@ end
 R2, (x1, x2) = polynomial_ring(QQ, [:x1, :x2])
 o2 = lex(R2)
 f95 = x1^4 * x2
-naive_reduce(f95, [x1^3, x1^2*x2 - x2^2], o2),
-naive_reduce(f95, [x1^2*x2 - x2^2, x1^3], o2)
+reduction(f95, [x1^3, x1^2*x2 - x2^2], o2),
+reduction(f95, [x1^2*x2 - x2^2, x1^3], o2)
 ```
 
 ::: {.fragment}
 Διαφορετική σειρά $\Rightarrow$ διαφορετικό υπόλοιπο! ($0$ vs. $x_2^3$)
 :::
 
-## Το OSCAR είναι πιο έξυπνο
+## Η έτοιμη `reduce` του OSCAR
 
 ```{julia}
 reduce(f95, [x1^3, x1^2*x2 - x2^2], ordering = o2),
@@ -151,7 +151,7 @@ reduce(f95, [x1^2*x2 - x2^2, x1^3], ordering = o2)
 ```
 
 ::: {.fragment}
-Και οι δύο σειρές δίνουν $0$! Θα δούμε γιατί: η μοναδικότητα αποκαθίσταται όταν το $B$ είναι **βάση Gröbner**.
+Και οι δύο σειρές δίνουν $0$ — άλλες επιλογές διαιρέτη, εξίσου νόμιμο υπόλοιπο. Η μη-μοναδικότητα είναι ιδιότητα του **ορισμού**, όχι της υλοποίησης: αποκαθίσταται μόνο όταν το $B$ είναι **βάση Gröbner**.
 :::
 
 ## Σύνοψη

@@ -442,7 +442,7 @@
   <meta name="generator" content="quarto-1.8.25">
 
   <meta name="author" content="Ζαφειράκης Ζαφειρακόπουλος">
-  <meta name="dcterms.date" content="2026-09-04">
+  <meta name="dcterms.date" content="2026-09-22">
   <title>Πολυώνυμα Πολλών Μεταβλητών και Αναγωγή</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -998,7 +998,7 @@ margin-right: 0; }
 </div>
 </div>
 
-  <p class="date">2026-09-04</p>
+  <p class="date">2026-09-22</p>
 </section>
 <section id="ατζέντα" class="slide level2">
 <h2>Ατζέντα</h2>
@@ -1025,12 +1025,12 @@ margin-right: 0; }
 <section id="βαθμός" class="slide level2">
 <h2>Βαθμός</h2>
 <p><span class="math inline">\(\deg(x^a) = |a| = a_1+\cdots+a_n\)</span>.</p>
-<div id="60b2bbaa" class="cell" data-execution_count="2">
+<div id="fb92761b" class="cell" data-execution_count="2">
 <div class="cell-output cell-output-display" data-execution_count="3">
 <pre><code>5</code></pre>
 </div>
 </div>
-<div id="f9a562f1" class="cell" data-execution_count="3">
+<div id="31753eec" class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>3-element Vector{QQMPolyRingElem}:
  x^2*y^3
@@ -1070,13 +1070,13 @@ margin-right: 0; }
 <h2>Μεγιστοβάθμιος όρος</h2>
 <p>Κάθε <span class="math inline">\(f\)</span> γράφεται μονοσήμαντα <span class="math inline">\(f=c_1t_1+\cdots+c_mt_m\)</span>, <span class="math inline">\(t_1&gt;\cdots&gt;t_m\)</span>.</p>
 <p><span class="math inline">\(\operatorname{lc}(f)=c_1\)</span>, <span class="math inline">\(\operatorname{lt}(f)=c_1t_1\)</span>, <span class="math inline">\(\operatorname{lm}(f)=t_1\)</span>.</p>
-<div id="7ab57e3d" class="cell" data-execution_count="4">
+<div id="61d4796c" class="cell" data-execution_count="4">
 <div class="cell-output cell-output-display" data-execution_count="5">
 <pre><code>(x^3, x^3)</code></pre>
 </div>
 </div>
 <div class="fragment">
-<div id="84b04cc7" class="cell" data-execution_count="5">
+<div id="a4f9a286" class="cell" data-execution_count="5">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>(-1, 1)</code></pre>
 </div>
@@ -1097,7 +1097,7 @@ margin-right: 0; }
 </section>
 <section id="το-υπόλοιπο-δεν-είναι-πάντα-μοναδικό" class="slide level2">
 <h2>Το υπόλοιπο δεν είναι πάντα μοναδικό!</h2>
-<div id="89fa5f3d" class="cell" data-execution_count="6">
+<div id="6f5fdd91" class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>(0, x2^3)</code></pre>
 </div>
@@ -1106,15 +1106,15 @@ margin-right: 0; }
 <p>Διαφορετική σειρά <span class="math inline">\(\Rightarrow\)</span> διαφορετικό υπόλοιπο! (<span class="math inline">\(0\)</span> vs. <span class="math inline">\(x_2^3\)</span>)</p>
 </div>
 </section>
-<section id="το-oscar-είναι-πιο-έξυπνο" class="slide level2">
-<h2>Το OSCAR είναι πιο έξυπνο</h2>
-<div id="0e03055f" class="cell" data-execution_count="7">
+<section id="η-έτοιμη-reduce-του-oscar" class="slide level2">
+<h2>Η έτοιμη <code>reduce</code> του OSCAR</h2>
+<div id="2958a990" class="cell" data-execution_count="7">
 <div class="cell-output cell-output-display" data-execution_count="8">
 <pre><code>(0, 0)</code></pre>
 </div>
 </div>
 <div class="fragment">
-<p>Και οι δύο σειρές δίνουν <span class="math inline">\(0\)</span>! Θα δούμε γιατί: η μοναδικότητα αποκαθίσταται όταν το <span class="math inline">\(B\)</span> είναι <strong>βάση Gröbner</strong>.</p>
+<p>Και οι δύο σειρές δίνουν <span class="math inline">\(0\)</span> — άλλες επιλογές διαιρέτη, εξίσου νόμιμο υπόλοιπο. Η μη-μοναδικότητα είναι ιδιότητα του <strong>ορισμού</strong>, όχι της υλοποίησης: αποκαθίσταται μόνο όταν το <span class="math inline">\(B\)</span> είναι <strong>βάση Gröbner</strong>.</p>
 </div>
 </section>
 <section id="σύνοψη" class="slide level2">

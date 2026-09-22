@@ -2380,7 +2380,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Δημοσιευμένο</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">4 Σεπτεμβρίου 2026</p>
+      <p class="date">22 Σεπτεμβρίου 2026</p>
     </div>
   </div>
   
@@ -2430,27 +2430,27 @@ window.Quarto = {
 </section>
 <section id="άσκηση-5-ο-αλγόριθμος-αναγωγής-15" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-5-ο-αλγόριθμος-αναγωγής-15">Άσκηση 5 — Ο αλγόριθμος αναγωγής (15’)</h2>
-<p>Αντιγράψτε την <code>naive_reduce</code> από τη διάλεξη και εφαρμόστε τη στο</p>
+<p>Αντιγράψτε την <code>reduction</code> από τη διάλεξη και εφαρμόστε τη στο</p>
 <p><span class="math display">\[ h = x_1^3 x_2^2, \qquad B = \{x_1^2,\ x_1 x_2 - x_2^2\} \subseteq \mathbb{Q}[x_1,x_2], \ \text{lex } (x_1&gt;x_2). \]</span></p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>R2, (x1, x2) <span class="op">=</span> <span class="fu">polynomial_ring</span>(QQ, [<span class="op">:</span>x1, <span class="op">:</span>x2])</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>o2 <span class="op">=</span> <span class="fu">lex</span>(R2)</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">naive_reduce</span>(a, B, o)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">reduction</span>(a, B, o)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ο κώδικάς σας εδώ</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> x1<span class="op">^</span><span class="fl">3</span> <span class="op">*</span> x2<span class="op">^</span><span class="fl">2</span></span>
 <span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>B1 <span class="op">=</span> [x1<span class="op">^</span><span class="fl">2</span>, x1<span class="op">*</span>x2 <span class="op">-</span> x2<span class="op">^</span><span class="fl">2</span>]</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">naive_reduce</span>(h, B1, o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">reduction</span>(h, B1, o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="άσκηση-6-μη-μοναδικότητα-του-υπολοίπου-10" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-6-μη-μοναδικότητα-του-υπολοίπου-10">Άσκηση 6 — Μη-μοναδικότητα του υπολοίπου (10’)</h2>
-<p>Τρέξτε την <code>naive_reduce</code> στο <strong>ίδιο</strong> <code>h,B1</code> της Άσκησης 5, αλλά με τη σειρά του <code>B1</code> <strong>αντεστραμμένη</strong> (<code>reverse(B1)</code>). Είναι το υπόλοιπο το ίδιο;</p>
+<p>Τρέξτε την <code>reduction</code> στο <strong>ίδιο</strong> <code>h,B1</code> της Άσκησης 5, αλλά με τη σειρά του <code>B1</code> <strong>αντεστραμμένη</strong> (<code>reverse(B1)</code>). Είναι το υπόλοιπο το ίδιο;</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ο κώδικάς σας εδώ</span></span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="άσκηση-7-σύγκριση-με-την-έτοιμη-reduce-10" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-7-σύγκριση-με-την-έτοιμη-reduce-10">Άσκηση 7 — Σύγκριση με την έτοιμη <code>reduce</code> (10’)</h2>
-<p>Δοκιμάστε την έτοιμη <code>reduce(h, B, ordering=o)</code> του OSCAR και στις δύο σειρές του <code>B1</code>. Είναι πιο “έξυπνη” από τη δική σας; Τι θα χρειαζόταν το <code>B1</code> για να είναι το αποτέλεσμα <strong>πάντα</strong> μοναδικό, ανεξάρτητα από την υλοποίηση;</p>
+<p>Δοκιμάστε την έτοιμη <code>reduce(h, B, ordering=o)</code> του OSCAR και στις δύο σειρές του <code>B1</code>. Συμφωνεί με τη δική σας; Είναι κάποια από τις δύο «λάθος»; Τι θα χρειαζόταν το <code>B1</code> για να είναι το αποτέλεσμα <strong>πάντα</strong> μοναδικό, ανεξάρτητα από την υλοποίηση;</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ο κώδικάς σας εδώ</span></span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="callout callout-style-default callout-tip no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">

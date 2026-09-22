@@ -2395,7 +2395,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Δημοσιευμένο</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">4 Σεπτεμβρίου 2026</p>
+      <p class="date">22 Σεπτεμβρίου 2026</p>
     </div>
   </div>
   
@@ -2409,7 +2409,7 @@ window.Quarto = {
 
 <section id="άσκηση-1-ο-δακτύλιος-πολλών-μεταβλητών" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-1-ο-δακτύλιος-πολλών-μεταβλητών">Άσκηση 1 — Ο δακτύλιος πολλών μεταβλητών</h2>
-<div id="ac949ef8" class="cell" data-execution_count="2">
+<div id="79814f88" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>R, (x, y, z) <span class="op">=</span> <span class="fu">polynomial_ring</span>(QQ, [<span class="op">:</span>x, <span class="op">:</span>y, <span class="op">:</span>z])</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> x<span class="op">^</span><span class="fl">3</span><span class="op">*</span>y <span class="op">+</span> <span class="fl">2</span>x<span class="op">*</span>z<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> y<span class="op">^</span><span class="fl">2</span><span class="op">*</span>z</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">total_degree</span>(f)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
@@ -2417,7 +2417,7 @@ window.Quarto = {
 <pre><code>4</code></pre>
 </div>
 </div>
-<div id="4dc164f3" class="cell" data-execution_count="3">
+<div id="f8dd60a6" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">collect</span>(<span class="fu">terms</span>(f))</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="4">
 <pre><code>3-element Vector{QQMPolyRingElem}:
@@ -2429,7 +2429,7 @@ window.Quarto = {
 </section>
 <section id="άσκηση-2-διατάξεις-όρων" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-2-διατάξεις-όρων">Άσκηση 2 — Διατάξεις όρων</h2>
-<div id="6f6a1f4f" class="cell" data-execution_count="4">
+<div id="08118c84" class="cell" data-execution_count="4">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>o_lex, o_dl, o_drl <span class="op">=</span> <span class="fu">lex</span>(R), <span class="fu">deglex</span>(R), <span class="fu">degrevlex</span>(R)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cmp</span>(o_lex, x<span class="op">*</span>z<span class="op">^</span><span class="fl">2</span>, y<span class="op">^</span><span class="fl">3</span>), <span class="fu">cmp</span>(o_drl, x<span class="op">*</span>z<span class="op">^</span><span class="fl">2</span>, y<span class="op">^</span><span class="fl">3</span>)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="5">
@@ -2440,7 +2440,7 @@ window.Quarto = {
 </section>
 <section id="άσκηση-3-μεγιστοβάθμιος-όρος" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-3-μεγιστοβάθμιος-όρος">Άσκηση 3 — Μεγιστοβάθμιος όρος</h2>
-<div id="a273f3ab" class="cell" data-execution_count="5">
+<div id="19a0d02d" class="cell" data-execution_count="5">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>g <span class="op">=</span> x<span class="op">*</span>y<span class="op">^</span><span class="fl">3</span> <span class="op">+</span> x<span class="op">^</span><span class="fl">2</span><span class="op">*</span>z<span class="op">^</span><span class="fl">2</span> <span class="op">-</span> z<span class="op">^</span><span class="fl">4</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">leading_term</span>(g, ordering <span class="op">=</span> o_lex), <span class="fu">leading_term</span>(g, ordering <span class="op">=</span> o_dl), <span class="fu">leading_term</span>(g, ordering <span class="op">=</span> o_drl)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="6">
@@ -2451,7 +2451,7 @@ window.Quarto = {
 </section>
 <section id="άσκηση-4-έλεγχος-συμβατότητας" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-4-έλεγχος-συμβατότητας">Άσκηση 4 — Έλεγχος συμβατότητας</h2>
-<div id="072c3378" class="cell" data-execution_count="6">
+<div id="b7b55962" class="cell" data-execution_count="6">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">check_compatible</span>(o; trials <span class="op">=</span> <span class="fl">1000</span>)</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span>trials</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>        expa, expb, expc <span class="op">=</span> (<span class="fu">rand</span>(<span class="fl">0</span><span class="op">:</span><span class="fl">8</span>, <span class="fl">3</span>) <span class="cf">for</span> _ <span class="kw">in</span> <span class="fl">1</span><span class="op">:</span><span class="fl">3</span>)</span>
@@ -2471,11 +2471,11 @@ window.Quarto = {
 </section>
 <section id="άσκηση-5-ο-αλγόριθμος-αναγωγής" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-5-ο-αλγόριθμος-αναγωγής">Άσκηση 5 — Ο αλγόριθμος αναγωγής</h2>
-<div id="932a3ab3" class="cell" data-execution_count="7">
+<div id="353447be" class="cell" data-execution_count="7">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>R2, (x1, x2) <span class="op">=</span> <span class="fu">polynomial_ring</span>(QQ, [<span class="op">:</span>x1, <span class="op">:</span>x2])</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>o2 <span class="op">=</span> <span class="fu">lex</span>(R2)</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">naive_reduce</span>(a, B, o)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">reduction</span>(a, B, o)</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    r <span class="op">=</span> <span class="fu">zero</span>(<span class="fu">parent</span>(a))</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> !<span class="fu">iszero</span>(a)</span>
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>        la <span class="op">=</span> <span class="fu">leading_term</span>(a, ordering <span class="op">=</span> o)</span>
@@ -2492,7 +2492,7 @@ window.Quarto = {
 <span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>h <span class="op">=</span> x1<span class="op">^</span><span class="fl">3</span> <span class="op">*</span> x2<span class="op">^</span><span class="fl">2</span></span>
 <span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>B1 <span class="op">=</span> [x1<span class="op">^</span><span class="fl">2</span>, x1<span class="op">*</span>x2 <span class="op">-</span> x2<span class="op">^</span><span class="fl">2</span>]</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="fu">naive_reduce</span>(h, B1, o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="fu">reduction</span>(h, B1, o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="8">
 $0$
 </div>
@@ -2500,8 +2500,8 @@ $0$
 </section>
 <section id="άσκηση-6-μη-μοναδικότητα-του-υπολοίπου" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-6-μη-μοναδικότητα-του-υπολοίπου">Άσκηση 6 — Μη-μοναδικότητα του υπολοίπου</h2>
-<div id="69d079c5" class="cell" data-execution_count="8">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">naive_reduce</span>(h, <span class="fu">reverse</span>(B1), o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="68793e6f" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reduction</span>(h, <span class="fu">reverse</span>(B1), o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="9">
 $\mathop{\mathrm{x2}}^{5}$
 </div>
@@ -2510,13 +2510,13 @@ $\mathop{\mathrm{x2}}^{5}$
 </section>
 <section id="άσκηση-7-σύγκριση-με-την-έτοιμη-reduce" class="level2">
 <h2 class="anchored" data-anchor-id="άσκηση-7-σύγκριση-με-την-έτοιμη-reduce">Άσκηση 7 — Σύγκριση με την έτοιμη <code>reduce</code></h2>
-<div id="0f64ef81" class="cell" data-execution_count="9">
+<div id="8e7cdef8" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">reduce</span>(h, B1, ordering <span class="op">=</span> o2), <span class="fu">reduce</span>(h, <span class="fu">reverse</span>(B1), ordering <span class="op">=</span> o2)</span></code></pre></div><button title="Αντιγραφή στο πρόχειρο" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-display" data-execution_count="10">
 <pre><code>(0, 0)</code></pre>
 </div>
 </div>
-<p>Η έτοιμη <code>reduce</code> δίνει <code>0</code> και στις δύο περιπτώσεις — πιο “έξυπνη” (χρησιμοποιεί εσωτερικά τεχνικές πέρα από την αφελή, γραμμική δοκιμή διαιρετών). Για να είναι το αποτέλεσμα <strong>μαθηματικά εγγυημένα</strong> μοναδικό ανεξάρτητα από την υλοποίηση/σειρά, το <code>B1</code> θα έπρεπε να είναι <strong>βάση Gröbner</strong> του ιδεώδους που παράγει.</p>
+<p>Η έτοιμη <code>reduce</code> δίνει <code>0</code> και στις δύο περιπτώσεις. Καμία από τις δύο απαντήσεις δεν είναι λάθος: και το <span class="math inline">\(0\)</span> και το <span class="math inline">\(x_2^5\)</span> ικανοποιούν τον ορισμό του υπολοίπου. Απλώς η <code>reduce</code> κάνει διαφορετικές επιλογές διαιρέτη από τη δική μας γραμμική σάρωση της λίστας. Για να είναι το αποτέλεσμα <strong>μαθηματικά εγγυημένα</strong> μοναδικό ανεξάρτητα από την υλοποίηση/σειρά, το <code>B1</code> θα έπρεπε να είναι <strong>βάση Gröbner</strong> του ιδεώδους που παράγει.</p>
 </section>
 
 </main>
